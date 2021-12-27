@@ -1,0 +1,160 @@
+
+<!-- ------------------------------------------------------------------------------------------ -->
+<script type="text/javascript">
+    RED.nodes.registerType('ezlo-hub', {
+        category: 'Ezlo Hub',
+        color: '#319DD7',
+        defaults: {
+            serialNumber: { value:"" },
+            localIP: { value:"" }
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 0,
+        outputs: 0,
+        icon: "ezlo.png",
+        paletteLabel: "hub",
+        label: function () {
+            return this.description || this.serialNumber || "Ezlo Hub";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+
+    RED.nodes.registerType('ezlo-item', {
+        category: 'Ezlo Item',
+        color: '#319DD7',
+        defaults: {
+            itemId: { value: "" },
+            description: { value:"" }
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" },
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "ezlo.png",
+        paletteLabel: "item",
+        label: function () {
+            return this.description || this.itemId || "Ezlo Item";
+        },
+        labelStyle: function() {
+            return this.description?"node_label_italic":"";
+        }
+    });
+
+</script>
+
+<script type="text/x-red" data-template-name="ezlo-hub">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Serial Number</label>
+        <input type="text" id="node-input-serialNumber" placeholder="12345678">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Local IP Address</label>
+        <input type="text" id="node-input-localIp" placeholder="nnn.nnn.nnn.nnn (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo-hub">
+    <p>Interface node for an Ezlo Hub.</p>
+
+    <h3>Configuration</h3>
+    <p>Serial Number is the serial number of the Ezlo Hub, and is required for access.</p>
+    <p>Username and Password are required to obtain access tokens from the Ezlo cloud.</p>
+    <p>Local IP Address is optional; when given, the local hub API will be used rather than the cloud relay (still requires an access token from the Ezlo cloud).</p>
+
+    <h3>Inputs</h3>
+    <p>An empty payload outputs the hub status.</p>
+    <p>The following payload will issue any method (API call) to the hub. The <tt>params</tt> object contain the key/value pairs of parameter data required by the method:
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>{</code>
+        <br/>
+        <code>    method: "api-method-name", </code>
+        <br/>
+        <code>    params: {</code>
+        <br/>
+        <code>        key: value</code>
+        <br/>
+        <code>    }{</code>
+        <br/>
+        <code>}</code>
+    </ul>
+
+    <h3>Outputs</h3>
+    <p>Status Report</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>offline</code> or <code>online</code>
+    </ul>
+</script>
+
+
+<!-- ------------------------------------------------------------------------------------------ -->
+
+<script type="text/x-red" data-template-name="ezlo-item">
+    <div class="form-row">
+        <label for="node-input-hostname"><i class="fa fa-tag"></i> Item ID</label>
+        <input type="text" id="node-input-itemId" placeholder="The item ID">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the item (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
+        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
+        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
+        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
+    </div>
+    <div class="form-row">
+        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
+        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo-item">
+    <p>Interface to an item, which is a value attached to a device. On Ezlo hubs, you manipulate devices by setting
+    values. For example, rather than sending a "set level" action to a dimmer to change its brightness, you set the
+    value of the dimmer device's <tt>dimmer</tt> item. So this node has one input and one output. State changes for the
+    item appear on the output. Requests to modify the value are sent to the input.
+
+    <h3>Configuration</h3>
+    <p>itemID is the ID of the item. Each items has a unique ID.</p>
+    <p>Description of the item; this is really just for your notes to help you remember what it is.</p>
+
+    <h3>Inputs</h3>
+    <p>Status request: empty payload</p>
+    <p>Set Item Value</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>value</code> - a number, string (unquoted), boolean (`true` or `false`), or object/array that matches the expected type of the item (per the Ezlo API).
+    </ul>
+
+    <h3>Outputs</h3>
+    <p>Item Value</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>value</code> - the current/new value of the item (type according to the Ezlo API).
+    </ul>
+</script>
+
