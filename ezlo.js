@@ -7,7 +7,7 @@
 module.exports = function (RED) {
     "use strict";
 
-    ezlo = require( "./lib/ezlo" );
+    const ezlo = require( "./lib/ezlo" );
 
     function setStatusDisconnected(node, allNodes) {
         if ( allNodes ) {
@@ -171,7 +171,7 @@ module.exports = function (RED) {
             });
             node.hubNode.on( 'mode-changing', data => {
                 let p = { action: 'changing' };
-                p.from = lastMode;
+                p.from = node.lastMode;
                 delete p.from.action;
                 p.to = data;
                 node.send( p );
