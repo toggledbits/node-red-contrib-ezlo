@@ -1,70 +1,124 @@
 
-<!-- ------------------------------------------------------------------------------------------ -->
-<script type="text/javascript">
-    RED.nodes.registerType('ezlo-hub', {
-        category: 'Ezlo Hub',
-        color: '#319DD7',
-        defaults: {
-            serialNumber: { value:"" },
-            localIP: { value:"" }
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 0,
-        outputs: 0,
-        icon: "ezlo.png",
-        paletteLabel: "hub",
-        label: function () {
-            return this.description || this.serialNumber || "Ezlo Hub";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        }
-    });
-
-    RED.nodes.registerType('ezlo-item', {
-        category: 'Ezlo Item',
-        color: '#319DD7',
-        defaults: {
-            itemId: { value: "" },
-            description: { value:"" }
-        },
-        credentials: {
-            username: { type: "text" },
-            password: { type: "password" },
-        },
-        inputs: 1,
-        outputs: 1,
-        icon: "ezlo.png",
-        paletteLabel: "item",
-        label: function () {
-            return this.description || this.itemId || "Ezlo Item";
-        },
-        labelStyle: function() {
-            return this.description?"node_label_italic":"";
-        }
-    });
-
+<script type="text/x-red" data-template-name="ezlo-item">
+    <div class="form-row">
+        <label for="node-input-hub"><i class="fa fa-globe"></i> <span data-i18n="ezlo.label.hub">Hub</span></label>
+        <input type="text" id="node-input-hub">
+    </div>
+    <div class="form-row">
+        <label for="node-input-itemId"><i class="fa fa-tag"></i> Item ID</label>
+        <input type="text" id="node-input-itemId" placeholder="The item ID">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the item (optional)">
+    </div>
 </script>
 
-<script type="text/x-red" data-template-name="ezlo-hub">
+<script type="text/x-red" data-help-name="ezlo-item">
+    <p>Interface to an item, which is a value attached to a device. On Ezlo hubs, you manipulate devices by setting
+    values. For example, rather than sending a "set level" action to a dimmer to change its brightness, you set the
+    value of the dimmer device's <tt>dimmer</tt> item. So this node has one input and one output. State changes for the
+    item appear on the output. Requests to modify the value are sent to the input.
+
+    <h3>Configuration</h3>
+    <p>itemID is the ID of the item. Each items has a unique ID.</p>
+    <p>Description of the item; this is really just for your notes to help you remember what it is.</p>
+
+    <h3>Inputs</h3>
+    <p>Status request: empty payload</p>
+    <p>Set Item Value</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>value</code> - a number, string (unquoted), boolean (`true` or `false`), or object/array that matches the expected type of the item (per the Ezlo API).
+    </ul>
+
+    <h3>Outputs</h3>
+    <p>Item Value</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>value</code> - the current/new value of the item (type according to the Ezlo API).
+    </ul>
+</script>
+
+<script type="text/x-red" data-template-name="ezlo-housemode">
     <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Serial Number</label>
-        <input type="text" id="node-input-serialNumber" placeholder="12345678">
+        <label for="node-input-hub"><i class="fa fa-globe"></i> <span data-i18n="ezlo.label.hub">Hub</span></label>
+        <input type="text" id="node-input-hub">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo-housemode">
+    <p>Interface to an item, which is a value attached to a device. On Ezlo hubs, you manipulate devices by setting
+    values. For example, rather than sending a "set level" action to a dimmer to change its brightness, you set the
+    value of the dimmer device's <tt>dimmer</tt> item. So this node has one input and one output. State changes for the
+    item appear on the output. Requests to modify the value are sent to the input.
+
+    <h3>Configuration</h3>
+    <p>TBD </p>
+    <p>Description of the item; this is really just for your notes to help you remember what it is.</p>
+
+    <h3>Inputs</h3>
+    <p>Status request: empty payload</p>
+    <p>Set House Mode</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>mode</code> - a number 1-4 or one of the strings "Home", "Away", "Night" or "Vacation"
+    </ul>
+
+    <h3>Outputs</h3>
+    <p>Housemode Status</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+        <code>current_id</code> - ID of the current house mode (1-4)
+        <code>current_name</code> - name of the current house mode
+        <code>pending_id</code> - ID of the next house mode if change is pending, *null* otherwise
+        <code>pending_name</code> - name of the next house mode if change is pending, "" (empty string) otherwise
+    </ul>
+</script>
+
+<script type="text/html" data-template-name="ezlo-hub">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="fa fa-user-tag"></i> <span data-i18n="common.label.name">Name</span></label>
+        <input type="text" id="node-config-input-name" data-i18n="[placeholder]common.label.name">
     </div>
     <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Local IP Address</label>
-        <input type="text" id="node-input-localIp" placeholder="nnn.nnn.nnn.nnn (optional)">
+        <ul style="min-width: 600px; margin-bottom: 20px;" id="node-config-ezlo-hub-tabs"></ul>
     </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here">
+    <div id="node-config-ezlo-hub-tabs-content" style="min-height: 150px;">
+        <div id="ezlo-hub-tab-connection" style="display: none">
+            <div class="form-row node-input-serialNumber">
+                <label for="node-config-input-serialNumber"><i class="fa fa-fingerprint"></i> <span data-i18n="ezlo.label.serialNumber">Serial Number</span></label>
+                <input type="text" id="node-config-input-serialNumber" style="width: auto" data-i18n="[placeholder]ezlo.label.example">
+            </div>
+            <div class="form-row" style="margin-bottom:0">
+                <input type="checkbox" id="node-config-input-autoConnect" style="margin: 0 5px 0 104px; display: inline-block; width: auto;">
+                <label for="node-config-input-autoConnect" style="width: auto"><span data-i18n="ezlo.label.auto-connect">Auto-connect</span></label>
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-localIP"><i class="fa fa-network-wired"></i> <span data-i18n="ezlo.label.localIP">Local IP Address</span></label>
+                <input type="text" id="node-config-input-localIP" style="width: auto;" data-i18n="[placeholder]ezlo.label.example">
+            </div>
+        </div>
+        <div id="ezlo-hub-tab-security" style="display:none">
+            <div class="form-row">
+                <label for="node-config-input-username"><i class="fa fa-user"></i> <span data-i18n="common.label.username">Username</span></label>
+                <input type="text" id="node-config-input-username">
+            </div>
+            <div class="form-row">
+                <label for="node-config-input-password"><i class="fa fa-lock"></i> <span data-i18n="common.label.password">Password</span></label>
+                <input type="password" id="node-config-input-password">
+            </div>
+        </div>
+        <div id="ezlo-hub-tab-options" style="display:none">
+            <div class="form-row">
+                <label style="width: auto;" for="node-config-input-accessAnonymous"><i class="fa fa-tasks"></i> <span data-i18n="common.label.topic">Offline Anonymous Access</span></label>
+                <select id="node-config-input-accessAnonymous" style="width: auto">
+                    <option value="" data-i18n="ezlo.anonUnchanged">Leave current setting</option>
+                    <option value="false" data-i18n="ezlo.anonEnable">Disable anonymous access</option>
+                    <option value="true" data-i18n="ezlo.anonDisable">Enable anonymous access</option>
+                </select>
+            </div>
+        </div>
     </div>
 </script>
 
@@ -105,56 +159,112 @@
 
 <!-- ------------------------------------------------------------------------------------------ -->
 
-<script type="text/x-red" data-template-name="ezlo-item">
-    <div class="form-row">
-        <label for="node-input-hostname"><i class="fa fa-tag"></i> Item ID</label>
-        <input type="text" id="node-input-itemId" placeholder="The item ID">
-    </div>
-    <div class="form-row">
-        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
-        <input type="text" id="node-input-description" placeholder="The description of the item (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-username"><i class="fa fa-user"></i> Username</label>
-        <input type="text" id="node-input-username" placeholder="Enter the username here (optional)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-password"><i class="fa fa-key"></i> Password</label>
-        <input type="text" id="node-input-password" placeholder="Enter the password here (optional))">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollinginterval"><i class="fa fa-clock-o"></i> Ping Interval (ms)</label>
-        <input type="text" id="node-input-pollinginterval" placeholder="(Time in milliseconds. 0=off)">
-    </div>
-    <div class="form-row">
-        <label for="node-input-pollstatus"><i class="fa fa-rss"></i> Sends status cyclically.</label>
-        <input type="checkbox" id="node-input-pollstatus" style="display: inline-block; width: auto; vertical-align: top;">
-    </div>
+<script type="text/javascript">
+/* jshint esversion:8,browser:true */
+/* global RED,$ */
+(function() {
+
+    RED.nodes.registerType('ezlo-hub',{
+        category: 'config',
+        defaults: {
+            name: { value: "", required: false },
+            serialNumber: { value:"", required: true },
+            localIP: { value: "", required:false, validate:RED.validators.number(true)},
+            autoConnect: { value: true },
+            accessAnonymous: { value: "" },
+        },
+        credentials: {
+            username: { type: "text" },
+            password: { type: "password" }
+        },
+        label: function() {
+            if (this.name) {
+                return this.name;
+            }
+            return this.serialNumber;
+        },
+        oneditprepare: function () {
+            var tabs = RED.tabs.create({
+                id: "node-config-ezlo-hub-tabs",
+                onchange: function(tab) {
+                    $("#node-config-ezlo-hub-tabs-content").children().hide();
+                    $("#" + tab.id).show();
+                }
+            });
+            tabs.addTab({
+                id: "ezlo-hub-tab-connection",
+                label: this._("ezlo.tabs-label.connection")
+            });
+            tabs.addTab({
+                id: "ezlo-hub-tab-security",
+                label: this._("ezlo.tabs-label.security")
+            });
+
+            tabs.addTab({
+                id: "ezlo-hub-tab-options",
+                label: this._("ezlo.tabs-label.options")
+            });
+
+            setTimeout(function() { tabs.resize(); },0);
+
+            if ( "undefined" === typeof this.accessAnonymous ) {
+                this.accessAnonymous = null;
+                $("#node-config-input-accessAnonymous").val( "" );
+            }
+        },
+        oneditsave: function() {
+        }
+    });
+
+    RED.nodes.registerType('ezlo-item',{
+        category: 'ezlo',
+        defaults: {
+            hub: { type:"ezlo-hub", required: true},
+            itemId: { value: "", required: true },
+            description: { value: "", required: false }
+        },
+        color:"#d8bfd8",
+        inputs: 1,
+        outputs: 1,
+        icon: "ezlo-item.svg",
+        label: function() {
+            return this.name || this.itemId || "Item";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            const node = this;
+            $("#node-input-hub").on( "change", function(d) {
+            });
+
+        },
+        oneditsave: function() {
+        }
+    });
+	
+    RED.nodes.registerType('ezlo-housemode',{
+        category: 'ezlo',
+        defaults: {
+            hub: { type:"ezlo-hub", required: true}
+        },
+        color:"#d8bfd8",
+        inputs: 1,
+        outputs: 1,
+        icon: "ezlo-housemode.svg",
+        label: function() {
+            return "House Mode";
+        },
+        labelStyle: function() {
+            return "node_label_italic";
+        },
+        oneditprepare: function() {
+            const node = this;
+            $("#node-input-hub").on( "change", function(d) {
+            });
+
+        },
+        oneditsave: function() {
+        }
+    });})();
 </script>
-
-<script type="text/x-red" data-help-name="ezlo-item">
-    <p>Interface to an item, which is a value attached to a device. On Ezlo hubs, you manipulate devices by setting
-    values. For example, rather than sending a "set level" action to a dimmer to change its brightness, you set the
-    value of the dimmer device's <tt>dimmer</tt> item. So this node has one input and one output. State changes for the
-    item appear on the output. Requests to modify the value are sent to the input.
-
-    <h3>Configuration</h3>
-    <p>itemID is the ID of the item. Each items has a unique ID.</p>
-    <p>Description of the item; this is really just for your notes to help you remember what it is.</p>
-
-    <h3>Inputs</h3>
-    <p>Status request: empty payload</p>
-    <p>Set Item Value</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>value</code> - a number, string (unquoted), boolean (`true` or `false`), or object/array that matches the expected type of the item (per the Ezlo API).
-    </ul>
-
-    <h3>Outputs</h3>
-    <p>Item Value</p>
-    <p><code>msg.payload</code></p>
-    <ul>
-        <code>value</code> - the current/new value of the item (type according to the Ezlo API).
-    </ul>
-</script>
-

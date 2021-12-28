@@ -1,7 +1,7 @@
 # Ezlo nodes for Node-Red
-<!--
 [![Platform](https://img.shields.io/badge/platform-Node--RED-red)](https://nodered.org)
 ![License](https://img.shields.io/github/license/toggledbits/node-red-contrib-ezlo.svg)
+<!--
 [![NPM](https://img.shields.io/npm/v/node-red-contrib-ezlo?logo=npm)](https://www.npmjs.org/package/node-red-contrib-ezlo)
 [![Known Vulnerabilities](https://snyk.io/test/npm/node-red-contrib-ezlo/badge.svg)](https://snyk.io/test/npm/node-red-contrib-ezlo)
 [![Downloads](https://img.shields.io/npm/dm/node-red-contrib-ezlo.svg)](https://www.npmjs.com/package/node-red-contrib-ezlo)
@@ -12,7 +12,7 @@
 [![Open Issues](https://img.shields.io/github/issues-raw/toggledbits/node-red-contrib-ezlo.svg)](https://github.com/toggledbits/node-red-contrib-ezlo/issues)
 [![Closed Issues](https://img.shields.io/github/issues-closed-raw/toggledbits/node-red-contrib-ezlo.svg)](https://github.com/toggledbits/node-red-contrib-ezlo/issues?q=is%3Aissue+is%3Aclosed)
 
-This package contains nodes for controlling devices connected to Ezlo hubs via their API. It can connect to the hub locally, or through Ezlo's cloud relay (the latter is the only optional available for older generation Atom and PlugHub hubs).
+This package provides Node-Red nodes for controlling devices connected to Ezlo hubs via their API. It can connect to the hub locally, or through Ezlo's cloud relay (the latter is the only optional available for older generation Atom and PlugHub hubs).
 
 This package is under construction.
 
@@ -26,8 +26,9 @@ Please report issues on the [Github repository for the project](https://github.c
 
 ## Donations Fuel This Project!
 
-<a target="blank" href="https://blockchain.com/btc/payment_request?address=1KHq3LGf1F9GMSnZ658ht873n3GuX4tsVF"><img src="https://img.shields.io/badge/Donate-Bitcoin-green.svg"/></a>
-<a target="blank" href="https://www.toggledbits.com/donate"><img src="https://img.shields.io/badge/Donate-PayPal-blue.svg"/></a>
+<a target="blank" href="https://blockchain.com/eth/address/0x604AEE87ca9099471492bC6580002E7dC880050B"><img src="https://img.shields.io/badge/Donate-Ethereum-blue.svg"/></a>
+<a target="blank" href="https://blockchain.com/btc/address/1KHq3LGf1F9GMSnZ658ht873n3GuX4tsVF"><img src="https://img.shields.io/badge/Donate-Bitcoin-green.svg"/></a>
+<a target="blank" href="https://www.toggledbits.com/donate"><img src="https://img.shields.io/badge/Donate-PayPal-blueviolet.svg"/></a>
 
 <a href="https://www.buymeacoffee.com/toggledbits" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Dram" height="41" width="174"></a>
 
