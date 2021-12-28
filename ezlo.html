@@ -12,6 +12,14 @@
         <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
         <input type="text" id="node-input-description" placeholder="The description of the item (optional)">
     </div>
+    <div class="form-row">
+        <label style="width: auto;" for="node-input-responseType"><i class="fa fa-tasks"></i> <span data-i18n="common.label.topic">Output Format</span></label>
+        <select id="node-input-responseType" style="width: auto">
+            <option value="" data-i18n="ezlo.response.simple">Simple (value only)</option>
+            <option value="abbr" data-i18n="ezlo.response.abbrev">Abbreviated (id, name, value)</option>
+            <option value="full" data-i18n="ezlo.response.full">Full</option>
+        </select>
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="ezlo-item">
@@ -38,6 +46,25 @@
     <ul>
         <code>value</code> - the current/new value of the item (type according to the Ezlo API).
     </ul>
+</script>
+
+<script type="text/x-red" data-template-name="ezlo-device">
+    <div class="form-row">
+        <label for="node-input-hub"><i class="fa fa-globe"></i> <span data-i18n="ezlo.label.hub">Hub</span></label>
+        <input type="text" id="node-input-hub">
+    </div>
+    <div class="form-row">
+        <label for="node-input-deviceId"><i class="fa fa-tag"></i> Device ID</label>
+        <input type="text" id="node-input-deviceId" placeholder="The Device ID">
+    </div>
+    <div class="form-row">
+        <label for="node-input-description"><i class="fa fa-comment"></i> Description</label>
+        <input type="text" id="node-input-description" placeholder="The description of the device (optional)">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo-device">
+	<p>TBD</p>
 </script>
 
 <script type="text/x-red" data-template-name="ezlo-housemode">
@@ -73,6 +100,34 @@
         <code>current_name</code> - name of the current house mode
         <code>pending_id</code> - ID of the next house mode if change is pending, *null* otherwise
         <code>pending_name</code> - name of the next house mode if change is pending, "" (empty string) otherwise
+    </ul>
+</script>
+
+<script type="text/x-red" data-template-name="ezlo-hubui">
+    <div class="form-row">
+        <label for="node-input-hub"><i class="fa fa-globe"></i> <span data-i18n="ezlo.label.hub">Hub</span></label>
+        <input type="text" id="node-input-hub">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo-hubui">
+    <p>Interface to Ezlo hub. Allows you to detect online/offline state of hub, and send any API action to the hub via
+	its input.</p>
+
+    <h3>Configuration</h3>
+    <p>Hub</p>
+
+    <h3>Inputs</h3>
+    <p>Status request: empty payload</p>
+    <p>Payload with key <code>method</code> defined will execute the named method. Parameters may be given in
+	(optional) sub-object <code>params</code>. You may also set <code>api</code> if a specific API version
+	response is needed. Refer to the Ezlo API documentation for details.</p>
+
+    <h3>Outputs</h3>
+    <p>Hub Status</p>
+    <p><code>msg.payload</code></p>
+    <ul>
+		<code>online</code> or <code>offline</code> - (string) the state of the connection to the hub.
     </ul>
 </script>
 
@@ -178,7 +233,7 @@
             password: { type: "password" }
         },
         label: function() {
-            if (this.name) {
+            if ( "" !== ( this.name || "" ) ) {
                 return this.name;
             }
             return this.serialNumber;
@@ -193,23 +248,23 @@
             });
             tabs.addTab({
                 id: "ezlo-hub-tab-connection",
-                label: this._("ezlo.tabs-label.connection")
+                label: this._("ezlo.tabs-label.connection") || "Connection"
             });
             tabs.addTab({
                 id: "ezlo-hub-tab-security",
-                label: this._("ezlo.tabs-label.security")
+                label: this._("ezlo.tabs-label.security") || "Security"
             });
 
             tabs.addTab({
                 id: "ezlo-hub-tab-options",
-                label: this._("ezlo.tabs-label.options")
+                label: this._("ezlo.tabs-label.options") || "Options"
             });
 
             setTimeout(function() { tabs.resize(); },0);
 
             if ( "undefined" === typeof this.accessAnonymous ) {
                 this.accessAnonymous = null;
-                $("#node-config-input-accessAnonymous").val( "" );
+                $("#node-config-input-hub-accessAnonymous").val( "" );
             }
         },
         oneditsave: function() {
@@ -221,7 +276,8 @@
         defaults: {
             hub: { type:"ezlo-hub", required: true},
             itemId: { value: "", required: true },
-            description: { value: "", required: false }
+            description: { value: "", required: false },
+            responseType: { value: "", required: false }
         },
         color:"#d8bfd8",
         inputs: 1,
@@ -229,6 +285,32 @@
         icon: "ezlo-item.svg",
         label: function() {
             return this.name || this.itemId || "Item";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
+        },
+        oneditprepare: function() {
+            const node = this;
+            $("#node-input-hub").on( "change", function(d) {
+            });
+        },
+        oneditsave: function() {
+        }
+    });
+
+    RED.nodes.registerType('ezlo-device',{
+        category: 'ezlo',
+        defaults: {
+            hub: { type:"ezlo-hub", required: true},
+            deviceId: { value: "", required: true },
+            description: { value: "", required: false }
+        },
+        color:"#d8bfd8",
+        inputs: 1,
+        outputs: 1,
+        icon: "ezlo-device.svg",
+        label: function() {
+            return this.name || this.deviceId || "Device";
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
@@ -256,6 +338,30 @@
         },
         labelStyle: function() {
             return "node_label_italic";
+        },
+        oneditprepare: function() {
+            const node = this;
+            $("#node-input-hub").on( "change", function(d) {
+            });
+        },
+        oneditsave: function() {
+        }
+    });
+
+    RED.nodes.registerType('ezlo-hubui',{
+        category: 'ezlo',
+        defaults: {
+            hub: { type:"ezlo-hub", required: true}
+        },
+        color:"#d8bfd8",
+        inputs: 1,
+        outputs: 1,
+        icon: "ezlo-hub.svg",
+        label: function() {
+            return this.name || "hub";
+        },
+        labelStyle: function() {
+            return this.name?"node_label_italic":"";
         },
         oneditprepare: function() {
             const node = this;

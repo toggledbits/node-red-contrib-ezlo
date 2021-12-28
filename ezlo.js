@@ -7,7 +7,7 @@
 module.exports = function (RED) {
     "use strict";
 
-    const ezlo = require( "./lib/ezlo" );
+    const EzloClient = require( "./lib/ezlo" );
 
     function setStatusDisconnected(node, allNodes) {
         if ( allNodes ) {
@@ -60,12 +60,14 @@ module.exports = function (RED) {
             }
         };
 
-        node.connect = function() {
+        node.connect = async function() {
             if ( ! node.connectPromise ) {
                 node.connectPromise = new Promise( (resolve,reject) => {
                     if ( ! node.api.connected() ) {
                         node.connecting = true;
+                        console.log( "starting Ezlo API client" );
                         node.api.start().then( () => {
+                            console.log( "Connected to hub!" );
                             setStatusConnected( node, true );
                             resolve( node.api );
                         }).catch( err => {
@@ -76,6 +78,7 @@ module.exports = function (RED) {
                             node.connecting = false;
                         });
                     } else {
+                        console.log( "Already connected to hub" );
                         resolve( node.api );
                     }
                 });
@@ -86,7 +89,7 @@ module.exports = function (RED) {
         node.close = async function() {
             if ( node.api.connected() ) {
                 try {
-                    await node.api.close();
+                    await node.api.stop();
                 } catch ( err ) {
                     console.error( err );
                 }
@@ -112,15 +115,22 @@ module.exports = function (RED) {
         });
 
         /* Create the API client instance, but don't connect it yet */
-        let opts = { serial: node.serial };
-        if ( node.username ) {
-            opts.username = node.username;
-            opts.password = node.password;
+        let opts = { serial: node.serial, debug: true };
+        if ( "" !== ( node.credentials.username || "" ) ) {
+            opts.username = node.credentials.username;
+            opts.password = node.credentials.password;
         }
         if ( node.localIP ) {
             opts.endpoint = node.localIP;
         }
-        node.api = new ezlo.EzloClient( opts );
+        //console.log( 'creating ezlo API client', opts );
+        node.api = new EzloClient( opts );
+        node.api.on( 'offline', () => {
+            setStatusDisconnected( node, true );
+        });
+        node.api.on( 'online', () => {
+            setStatusConnected( node, true );
+        });
     }
     RED.nodes.registerType( "ezlo-hub", EzloHubNode, {
         credentials: {
@@ -131,27 +141,98 @@ module.exports = function (RED) {
 
     // -----------------------------------------------------------------------------------------
 
+    function item_response( node, data ) {
+        let msg = {};
+        /* Send proper form for configured response type */
+        if ( "full" === node.responseType ) {
+            msg.payload = data;
+        } else if ( "abbr" === node.responseType ) {
+            msg.payload = { item: data._id, name: data.name, value: data.value };
+        } else {
+            msg.payload = data.value;
+        }
+        console.log(node.id,'sending',msg);
+        node.send( msg );
+    }
+
     function EzloItemNode(config) {
+        console.log(this.id,"creating with",config);
         RED.nodes.createNode(this, config);
         const node = this;
         node.itemId = config.itemId;
         node.hub = config.hub;
         node.hubNode = RED.nodes.getNode( node.hub );
-        
+        node.responseType = config.responseType;
+        node.name = node.itemId;
+
         setStatusDisconnected( node );
         if ( node.hubNode ) {
             node.hubNode.register( node );
-            node.hubNode.getAPI().on( 'item-changed', data => {
-                node.send( data );
+            node.hubNode.getAPI().on( 'item-updated', data => {
+                console.log(node.id,"handling item-updated",data.name);
+                if ( data.deviceName ) {
+                    node.name = `${data.deviceName}/${data.name}`;
+                } else if ( data.deviceId ) {
+                    node.name = `${data.deviceId}/${data.name}`;
+                }
+                item_response( node, data );
             });
         }
             
         this.on('input', function (msg) {
             // Set item value
-            node.hubNode.setItemValue( node.itemId, msg );
+            if ( "" === ( msg.payload || "" ) ) {
+                const data = node.hubNode.getAPI().getItem( node.itemId );
+                if ( data ) {
+                    item_response( node, data );
+                } else {
+                    console.error( node.id,"item",node.itemId,"no longer exists" );
+                }
+            } else {
+                node.hubNode.setItemValue( node.itemId, msg.payload );
+            }
         });
     }
     RED.nodes.registerType("ezlo-item", EzloItemNode, {
+    });
+    
+    function EzloDeviceNode(config) {
+        RED.nodes.createNode(this, config);
+        console.log(this,"creating EzloDeviceNoded with",config);
+        const node = this;
+        node.deviceId = config.deviceId;
+        node.hub = config.hub;
+        node.hubNode = RED.nodes.getNode( node.hub );
+        node.name = node.deviceId;
+
+        setStatusDisconnected( node );
+        if ( node.hubNode ) {
+            node.hubNode.register( node );
+            node.hubNode.getAPI().on( 'device-updated', data => {
+                if ( data.deviceName ) {
+                    node.name = data.deviceName;
+                }
+                let msg = { payload: data };
+                console.log(node.id,"handling device-updated",data.name,"sending",msg);
+                node.send( msg );
+            });
+        }
+
+        this.on('input', function (msg) {
+            // Set item value
+            if ( "" === ( msg.payload || "" ) ) {
+                const data = node.hubNode.getAPI().getDevice( node.deviceId );
+                if ( data ) {
+                    node.send( { payload: data } );
+                } else {
+                    console.error( node.id,"device",node.deviceId,"no longer exists" );
+                }
+            } else {
+                console.error(node.id,"unrecognized input payload:",msg.payload);
+            }
+        });
+    }
+    RED.nodes.registerType("ezlo-device", EzloDeviceNode, {
     });
     
     function EzloHousemodeNode(config) {
@@ -160,52 +241,100 @@ module.exports = function (RED) {
         node.hub = config.hub;
         node.hubNode = RED.nodes.getNode( node.hub );
         node.lastMode = false;
+        node.name = null;
+        // ??? simple vs full response? simple=current mode only
 
         setStatusDisconnected( node );
         if ( node.hubNode ) {
             node.hubNode.register( node );
             node.hubNode.getAPI().on( 'mode-changed', data => {
-                data.action = 'changed';
-                node.send( data );
+                console.log(node.id,"handling mode changed",data);
+                let msg =  { payload: { action: "current", current: data } };
                 node.lastMode = data;
+                node.send( msg );
             });
-            node.hubNode.on( 'mode-changing', data => {
-                let p = { action: 'changing' };
-                p.from = node.lastMode;
-                delete p.from.action;
-                p.to = data;
-                node.send( p );
+            node.hubNode.getAPI().on( 'mode-changing', data => {
+                console.log(node.id,"handling mode changing",data);
+                let msg = { payload: { action: "changing" } };
+                msg.payload.from = node.lastMode;
+                msg.payload.to = data;
+                node.send( msg );
             });
         }
-        
+
         this.on( 'input', function( msg ) {
+            console.log(node.id,"handling input",msg);
+            let params;
             if ( "object" === typeof( msg.payload ) ) {
                 if ( "cancel" === msg.payload.action ) {
-                    node.hubNode.send( "hub.modes.cancel_switch", {} );
+                    node.hubNode.getAPI().send( "hub.modes.cancel_switch", {} ).catch( err => {
+                        console.error( node.id, 'attempt to cancel house mode change:', err );
+                    });
+                    return;
                 } else {
-                    var p;
                     if ( msg.payload.mode || msg.payload.modeId ) {
-                        p = { modeId: msg.payload.mode || msg.payload.modeId };
+                        params = { modeId: String( msg.payload.mode || msg.payload.modeId ) };
                     } else if ( msg.payload.name ) {
-                        p = { name: msg.payload.name };
-                    }
-                    if ( p ) {
-                        node.hubNode.send( "hub.modes.switch", p );
-                    } else {
-                        // ??? flag error in data? 
+                        params = { name: msg.payload.name };
                     }
                 }
             } else if ( msg.payload ) {
                 if ( isNaN( msg.payload ) ) {
-                    node.hubNode.send( "hub.modes.switch", { name: msg.payload } );
+                    params = { name: msg.payload };
                 } else {
-                    node.hubNode.send( "hub.modes.switch", { modeId: parseInt( msg.payload ) } );
+                    params = { modeId: String( msg.payload ) }; /* yes, string */
                 }
             } else {
-                console.error( "TBD send status" );
+                let data = node.hubNode.getAPI().getMode();
+                let msg = { payload: { action: 'current', current: data } };
+                node.lastMode = data;
+                node.send( msg );
+                return;
             }
+            node.hubNode.getAPI().send( { api: "2.0", method: "hub.modes.switch" }, params ).catch( err => {
+                console.error( node.id,'attempting ezlo house mode change to',msg.payload,':',err );
+            });
         });
     }
     RED.nodes.registerType( "ezlo-housemode", EzloHousemodeNode, {
+    });
+    
+    function EzloHubUINode(config) {
+        RED.nodes.createNode( this, config );
+        const node = this;
+        node.hub = config.hub;
+        node.hubNode = RED.nodes.getNode( node.hub );
+        node.name = node.hubNode.name;
+
+        setStatusDisconnected( node );
+        if ( node.hubNode ) {
+            node.hubNode.register( node );
+            node.hubNode.getAPI().on( 'offline', data => {
+                node.send( { payload: { status: 'offline' } } );
+            });
+            node.hubNode.getAPI().on( 'online', data => {
+                node.send( { payload: { status: 'online' } } );
+            });
+        }
+
+        this.on( 'input', function( msg ) {
+            console.log(node.id,"handling input",msg);
+            let params;
+            if ( "object" === typeof( msg.payload ) ) {
+                if ( msg.payload.method ) {
+                    node.hubNode.getAPI().send( msg.payload, msg.payload.params || {} ).catch( err => {
+                        console.error(node.id,"attempted",msg.payload,"result",err);
+                    });
+                } else {
+                    console.error(node.id,"unrecognized action in payload",msg.payload);
+                }
+            } else if ( msg.payload ) {
+                console.error(node.id,"invalid payload",msg.payload);
+            } else {
+                node.send( { payload: { status: node.hubNode.getAPI().connected() ? 'online' : 'offline' } } );
+            }
+        });
+    }
+    RED.nodes.registerType( "ezlo-hubui", EzloHubUINode, {
     });
 };
