@@ -187,6 +187,87 @@
         }
     });
 
+    var loadItemSelectors = function( node ) {
+        try {
+            console.log("ezlo item: loading hub data for",node.id,"hub",node.hub);
+            $.getJSON({
+                url: "devicelist/" + String( node.hub ),
+                timeout: 30000
+            }).done( data => {
+                console.log("request success");
+                let currItem = data.items[ node.itemId ];
+                console.log("current item is",currItem);
+                /* First, fill the device menu with current devices */
+                var $el = $( 'select#ezlo-device' ).empty()
+                    .append( '<option value="">(choose device)</option>' );
+                for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
+                    $( '<option></option>' ).val( deviceId )
+                        .text( d.name || deviceId )
+                        .appendTo( $el );
+                }
+                var $il = $( 'select#ezlo-item' )
+                    .val( "" )
+                    .prop( 'disabled', true )
+                    .on( 'change', ( ev ) => {
+                        /* Item selected; copy to ItemID field */
+                        const $e = $( event.currentTarget );
+                        const id = $e.val();
+                        node.itemId = id;
+                        $( '#node-input-itemId' ).val( id ).trigger( 'change' );
+                        const deviceId = data.items[ id ]?.deviceId || "";
+                        $( '#node-input-description' )
+                            .val( `${String( data.devices[ deviceId ]?.name || deviceId )} ${String( data.items[ id ]?.name || id )}` )
+                            .trigger( 'change' );
+                    });
+                var fillDeviceItems = function( deviceId ) {
+                    $il.empty();
+                    $( '<option value="">(choose item)</option>' )
+                        .prependTo( $il );
+                    for ( var [ itemId, item ] of Object.entries( data.items || {} ) ) {
+                        if ( item.deviceId === deviceId ) {
+                            $( '<option></option>' ).val( itemId )
+                                .text( item.name )
+                                .appendTo( $il );
+                        }
+                    }
+                };
+                if ( currItem ) {
+                    $el.val( currItem.deviceId );
+                    fillDeviceItems( currItem.deviceId );
+                    $il.val( currItem._id );
+                    $il.prop( 'disabled', false );
+                } else if ( "" !== node.itemId ) {
+                    /* Item no longer exists */
+                    $( '<option value="unknown">**unknown device**</option>' )
+                        .appendTo( $el );
+                    $el.val( "unknown" );
+                    $( '<option></option>' ).val( node.itemId )
+                        .text( node.itemId + " (unknown item)" );
+                    $il.val( node.itemId ).prop( 'disabled', false );
+                } else {
+                    $el.val( "" );
+                    $il.val( "" ).prop( 'disabled', true );
+                }
+                $el.on( 'change', () => {
+                    $il.empty();
+                    var deviceId = $( 'select#ezlo-device' ).val();
+                    if ( "" !== deviceId ) {
+                        fillDeviceItems( deviceId );
+                        $il.val( "" ).prop( 'disabled', false );
+                    } else {
+                        $il.val( "" ).prop( 'disabled', true );
+                    }
+                });
+            }).fail( ( jqxhr, textStatus, error ) => {
+                console.error( "request failed:", jqxhr, textStatus, error );
+            });
+        } catch ( err ) {
+            $( 'select#ezlo-device' ).empty();
+            $( 'select#ezlo-item' ).empty();
+            console.error( err );
+        }
+    }
+
     RED.nodes.registerType('ezlo item',{
         category: 'ezlo',
         defaults: {
@@ -208,89 +289,60 @@
         oneditprepare: function() {
             const node = this;
             $("#node-input-hub").on( "change", function(d) {
+                loadItemSelectors( node );
             });
-            try {
-                console.log("ezlo item: loading device data");
-                $.getJSON({
-                    url: "devicelist/" + String(this.hub),
-                    timeout: 30000
-                }).done( data => {
-                    console.log("request success");
-                    let currItem = data.items[ this.itemId ];
-                    console.log("current item is",currItem);
-                    /* First, fill the device menu with current devices */
-                    var $el = $( 'select#ezlo-device' ).empty()
-                        .append( '<option value="">(choose device)</option>' );
-                    for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
-                        $( '<option></option>' ).val( deviceId )
-                            .text( d.name || deviceId )
-                            .appendTo( $el );
-                    }
-                    var $il = $( 'select#ezlo-item' )
-                        .val( "" )
-                        .prop( 'disabled', true )
-                        .on( 'change', ( ev ) => {
-                            /* Item selected; copy to ItemID field */
-                            const $e = $( event.currentTarget );
-                            const id = $e.val();
-                            this.itemId = id;
-                            $( '#node-input-itemId' ).val( id ).trigger( 'change' );
-                            const deviceId = data.items[ id ]?.deviceId || "";
-                            $( '#node-input-description' )
-                                .val( `${String( data.devices[ deviceId ]?.name || deviceId )} ${String( data.items[ id ]?.name || id )}` )
-                                .trigger( 'change' );
-                        });
-                    var fillDeviceItems = function( deviceId ) {
-                        $il.empty();
-                        $( '<option value="">(choose item)</option>' )
-                            .prependTo( $il );
-                        for ( var [ itemId, item ] of Object.entries( data.items || {} ) ) {
-                            if ( item.deviceId === deviceId ) {
-                                $( '<option></option>' ).val( itemId )
-                                    .text( item.name )
-                                    .appendTo( $il );
-                            }
-                        }
-                    };
-                    if ( currItem ) {
-                        $el.val( currItem.deviceId );
-                        fillDeviceItems( currItem.deviceId );
-                        $il.val( currItem._id );
-                        $il.prop( 'disabled', false );
-                    } else if ( "" !== this.itemId ) {
-                        /* Item no longer exists */
-                        $( '<option value="unknown">**unknown device**</option>' )
-                            .appendTo( $el );
-                        $el.val( "unknown" );
-                        $( '<option></option>' ).val( this.itemId )
-                            .text( this.itemId + " (unknown item)" );
-                        $il.val( this.itemId ).prop( 'disabled', false );
-                    } else {
-                        $el.val( "" );
-                        $il.val( "" ).prop( 'disabled', true );
-                    }
-                    $el.on( 'change', () => {
-                        $il.empty();
-                        var deviceId = $( 'select#ezlo-device' ).val();
-                        if ( "" !== deviceId ) {
-                            fillDeviceItems( deviceId );
-                            $il.val( "" ).prop( 'disabled', false );
-                        } else {
-                            $il.val( "" ).prop( 'disabled', true );
-                        }
-                    });
-                }).fail( ( jqxhr, textStatus, error ) => {
-                    console.error( "request failed:", jqxhr, textStatus, error );
-                });
-            } catch ( err ) {
-                $( 'select#ezlo-device' ).empty();
-                $( 'select#ezlo-item' ).empty();
-                console.error( err );
-            }
+            loadItemSelectors( node );
         },
         oneditsave: function() {
         }
     });
+
+    var loadDeviceSelector = function( node ) {
+        try {
+            console.log("ezlo device: loading device data for",node.id,"hub",node.hub);
+            $.getJSON({
+                url: "devicelist/" + String( node.hub ),
+                timeout: 30000
+            }).done( data => {
+                console.log("ezlo device: request success");
+                let currDevice = data.devices[ node.deviceId ];
+                console.log("ezlo device: current device is", currDevice);
+                /* Fill the device menu with current devices */
+                var $el = $( 'select#ezlo-device' ).empty()
+                    .append( '<option value="">(choose device)</option>' );
+                for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
+                    $( '<option></option>' ).val( deviceId )
+                        .text( d.name || deviceId )
+                        .appendTo( $el );
+                }
+                if ( currDevice ) {
+                    $el.val( currDevice._id );
+                } else if ( node.deviceId ) {
+                    $( '<option></option>' )
+                        .val( node.deviceId )
+                        .text( node.deviceId + " (unknown device)" )
+                        .appendTo( $el );
+                    $el.val( node.deviceId );
+                } else {
+                    $el.val( "" );
+                }
+                $el.on( 'change', ( ev ) => {
+                    var $e = $( ev.currentTarget );
+                    var id = $e.val();
+                    node.deviceId = id;
+                    $( '#node-input-deviceId' ).val( id ).trigger( 'change' );
+                    $( '#node-input-description' )
+                        .val( data.devices[ id ]?.name || id )
+                        .trigger( 'change' );
+                });
+            }).fail( ( jqxhr, textStatus, error ) => {
+                console.error( "request failed:", jqxhr, textStatus, error );
+            });
+        } catch ( err ) {
+            $( 'select#ezlo-device' ).empty();
+            console.error( err );
+        }
+    }
 
     RED.nodes.registerType('ezlo device',{
         category: 'ezlo',
@@ -312,51 +364,9 @@
         oneditprepare: function() {
             const node = this;
             $("#node-input-hub").on( "change", function(d) {
+                loadDeviceSelector( node );
             });
-            try {
-                console.log("ezlo device: loading device data");
-                $.getJSON({
-                    url: "devicelist/" + String(this.hub),
-                    timeout: 30000
-                }).done( data => {
-                    console.log("ezlo device: request success");
-                    let currDevice = data.devices[ this.deviceId ];
-                    console.log("ezlo device: current device is", currDevice);
-                    /* Fill the device menu with current devices */
-                    var $el = $( 'select#ezlo-device' ).empty()
-                        .append( '<option value="">(choose device)</option>' );
-                    for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
-                        $( '<option></option>' ).val( deviceId )
-                            .text( d.name || deviceId )
-                            .appendTo( $el );
-                    }
-                    if ( currDevice ) {
-                        $el.val( currDevice._id );
-                    } else if ( this.deviceId ) {
-                        $( '<option></option>' )
-                            .val( this.deviceId )
-                            .text( this.deviceId + " (unknown device)" )
-                            .appendTo( $el );
-                        $el.val( this.deviceId );
-                    } else {
-                        $el.val( "" );
-                    }
-                    $el.on( 'change', ( ev ) => {
-                        var $e = $( ev.currentTarget );
-                        var id = $e.val();
-                        this.deviceId = id;
-                        $( '#node-input-deviceId' ).val( id ).trigger( 'change' );
-                        $( '#node-input-description' )
-                            .val( data.devices[ id ]?.name || id )
-                            .trigger( 'change' );
-                    });
-                }).fail( ( jqxhr, textStatus, error ) => {
-                    console.error( "request failed:", jqxhr, textStatus, error );
-                });
-            } catch ( err ) {
-                $( 'select#ezlo-device' ).empty();
-                console.error( err );
-            }
+            loadDeviceSelector( node );
         },
         oneditsave: function() {
         }
