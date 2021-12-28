@@ -9,11 +9,19 @@
         <input type="text" id="node-input-itemId" data-i18n="[placeholder]ezlo.placeholder.itemid">
     </div>
     <div class="form-row">
+        <select id="ezlo-device">
+            <option value="">Loading...</option>
+        </select>
+        <select id="ezlo-item">
+            <option value="">Loading...</option>
+        </select>
+    </div>
+    <div class="form-row">
         <label for="node-input-description"><i class="fa fa-comment"></i> <span data-i18n="ezlo.label.description"></span></label>
         <input type="text" id="node-input-description" data-i18n="[placeholder]ezlo.placeholder.itemdescription">
     </div>
     <div class="form-row">
-        <label style="width: auto;" for="node-input-responseType"><i class="fa fa-tasks"></i> <span data-i18n="ezlo.label.outputformat"></span></label>
+        <label style="width: auto;" for="node-input-responseType"><i class="fa fa-send"></i> <span data-i18n="ezlo.label.outputformat"></span></label>
         <select id="node-input-responseType" style="width: auto">
             <option value="" data-i18n="ezlo.item-response.simple"></option>
             <option value="abbr" data-i18n="ezlo.item-response.abbr"></option>
@@ -32,6 +40,11 @@
         <input type="text" id="node-input-deviceId" data-i18n="[placeholder]ezlo.placeholder.deviceid">
     </div>
     <div class="form-row">
+        <select id="ezlo-device">
+            <option value="">Loading...</option>
+        </select>
+    </div>
+    <div class="form-row">
         <label for="node-input-description"><i class="fa fa-comment"></i> <span data-i18n="ezlo.label.description"></span></label>
         <input type="text" id="node-input-description" data-i18n="[placeholder]ezlo.placeholder.devicedescription">
     </div>
@@ -43,7 +56,7 @@
         <input type="text" id="node-input-hub">
     </div>
     <div class="form-row">
-        <label style="width: auto;" for="node-input-responseType"><i class="fa fa-tasks"></i> <span data-i18n="ezlo.label.outputformat"></span></label>
+        <label style="width: auto;" for="node-input-responseType"><i class="fa fa-send"></i> <span data-i18n="ezlo.label.outputformat"></span></label>
         <select id="node-input-responseType" style="width: auto">
             <option value="" data-i18n="ezlo.housemode-response.name"></option>
             <option value="id" data-i18n="ezlo.housemode-response.id"></option>
@@ -62,7 +75,7 @@
 
 <script type="text/html" data-template-name="ezlo-hub">
     <div class="form-row">
-        <label for="node-config-input-name"><i class="fa fa-user-tag"></i> <span data-i18n="ezlo.label.name"></span></label>
+        <label for="node-config-input-name"><i class="fa fa-tag"></i> <span data-i18n="ezlo.label.name"></span></label>
         <input type="text" id="node-config-input-name" data-i18n="[placeholder]ezlo.placeholder.name">
     </div>
     <div class="form-row">
@@ -70,8 +83,8 @@
     </div>
     <div id="node-config-ezlo-hub-tabs-content" style="min-height: 150px;">
         <div id="ezlo-hub-tab-connection" style="display: none">
-            <div class="form-row node-input-serialNumber">
-                <label for="node-config-input-serialNumber"><i class="fa fa-fingerprint"></i> <span data-i18n="ezlo.label.serialNumber"></span></label>
+            <div class="form-row">
+                <label for="node-config-input-serialNumber"><i class="fa fa-id-card-o"></i> <span data-i18n="ezlo.label.serialNumber"></span></label>
                 <input type="text" id="node-config-input-serialNumber" style="width: auto" data-i18n="[placeholder]ezlo.label.serialExample">
             </div>
             <div class="form-row" style="margin-bottom:0">
@@ -79,7 +92,7 @@
                 <label for="node-config-input-autoConnect" style="width: auto"><span data-i18n="ezlo.label.autoConnect"</span></label>
             </div>
             <div class="form-row">
-                <label for="node-config-input-localIP"><i class="fa fa-network-wired"></i> <span data-i18n="ezlo.label.localIP"></span></label>
+                <label for="node-config-input-localIP"><i class="fa fa-at"></i> <span data-i18n="ezlo.label.localIP"></span></label>
                 <input type="text" id="node-config-input-localIP" style="width: auto;" data-i18n="[placeholder]ezlo.label.ipExample">
             </div>
         </div>
@@ -95,7 +108,7 @@
         </div>
         <div id="ezlo-hub-tab-options" style="display:none">
             <div class="form-row">
-                <label style="width: auto;" for="node-config-input-accessAnonymous"><i class="fa fa-tasks"></i> <span data-i18n="ezlo.label.accessAnonymous"></span></label>
+                <label style="width: auto;" for="node-config-input-accessAnonymous"><i class="fa fa-cog"></i> <span data-i18n="ezlo.label.accessAnonymous"></span></label>
                 <select id="node-config-input-accessAnonymous" style="width: auto">
                     <option value="" data-i18n="ezlo.options.anonUnchanged"></option>
                     <option value="false" data-i18n="ezlo.options.anonEnable"></option>
@@ -185,7 +198,7 @@
         color:"#d8bfd8",
         inputs: 1,
         outputs: 1,
-        icon: "ezlo-item.svg",
+        icon: "bridge.svg",
         label: function() {
             return this.description || this.itemId || "ezlo item";
         },
@@ -196,6 +209,84 @@
             const node = this;
             $("#node-input-hub").on( "change", function(d) {
             });
+            try {
+                console.log("ezlo item: loading device data");
+                $.getJSON({
+                    url: "devicelist/" + String(this.hub),
+                    timeout: 30000
+                }).done( data => {
+                    console.log("request success");
+                    let currItem = data.items[ this.itemId ];
+                    console.log("current item is",currItem);
+                    /* First, fill the device menu with current devices */
+                    var $el = $( 'select#ezlo-device' ).empty()
+                        .append( '<option value="">(choose device)</option>' );
+                    for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
+                        $( '<option></option>' ).val( deviceId )
+                            .text( d.name || deviceId )
+                            .appendTo( $el );
+                    }
+                    var $il = $( 'select#ezlo-item' )
+                        .val( "" )
+                        .prop( 'disabled', true )
+                        .on( 'change', ( ev ) => {
+                            /* Item selected; copy to ItemID field */
+                            const $e = $( event.currentTarget );
+                            const id = $e.val();
+                            this.itemId = id;
+                            $( '#node-input-itemId' ).val( id ).trigger( 'change' );
+                            const deviceId = data.items[ id ]?.deviceId || "";
+                            $( '#node-input-description' )
+                                .val( `${String( data.devices[ deviceId ]?.name || deviceId )} ${String( data.items[ id ]?.name || id )}` )
+                                .trigger( 'change' );
+                        });
+                    var fillDeviceItems = function( deviceId ) {
+                        $il.empty();
+                        $( '<option value="">(choose item)</option>' )
+                            .prependTo( $il );
+                        for ( var [ itemId, item ] of Object.entries( data.items || {} ) ) {
+                            if ( item.deviceId === deviceId ) {
+                                $( '<option></option>' ).val( itemId )
+                                    .text( item.name )
+                                    .appendTo( $il );
+                            }
+                        }
+                    };
+                    if ( currItem ) {
+                        $el.val( currItem.deviceId );
+                        fillDeviceItems( currItem.deviceId );
+                        $il.val( currItem._id );
+                        $il.prop( 'disabled', false );
+                    } else if ( "" !== this.itemId ) {
+                        /* Item no longer exists */
+                        $( '<option value="unknown">**unknown device**</option>' )
+                            .appendTo( $el );
+                        $el.val( "unknown" );
+                        $( '<option></option>' ).val( this.itemId )
+                            .text( this.itemId + " (unknown item)" );
+                        $il.val( this.itemId ).prop( 'disabled', false );
+                    } else {
+                        $el.val( "" );
+                        $il.val( "" ).prop( 'disabled', true );
+                    }
+                    $el.on( 'change', () => {
+                        $il.empty();
+                        var deviceId = $( 'select#ezlo-device' ).val();
+                        if ( "" !== deviceId ) {
+                            fillDeviceItems( deviceId );
+                            $il.val( "" ).prop( 'disabled', false );
+                        } else {
+                            $il.val( "" ).prop( 'disabled', true );
+                        }
+                    });
+                }).fail( ( jqxhr, textStatus, error ) => {
+                    console.error( "request failed:", jqxhr, textStatus, error );
+                });
+            } catch ( err ) {
+                $( 'select#ezlo-device' ).empty();
+                $( 'select#ezlo-item' ).empty();
+                console.error( err );
+            }
         },
         oneditsave: function() {
         }
@@ -211,7 +302,7 @@
         color:"#d8bfd8",
         inputs: 1,
         outputs: 1,
-        icon: "ezlo-device.svg",
+        icon: "bridge.svg",
         label: function() {
             return this.description || this.deviceId || "ezlo device";
         },
@@ -222,6 +313,50 @@
             const node = this;
             $("#node-input-hub").on( "change", function(d) {
             });
+            try {
+                console.log("ezlo device: loading device data");
+                $.getJSON({
+                    url: "devicelist/" + String(this.hub),
+                    timeout: 30000
+                }).done( data => {
+                    console.log("ezlo device: request success");
+                    let currDevice = data.devices[ this.deviceId ];
+                    console.log("ezlo device: current device is", currDevice);
+                    /* Fill the device menu with current devices */
+                    var $el = $( 'select#ezlo-device' ).empty()
+                        .append( '<option value="">(choose device)</option>' );
+                    for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
+                        $( '<option></option>' ).val( deviceId )
+                            .text( d.name || deviceId )
+                            .appendTo( $el );
+                    }
+                    if ( currDevice ) {
+                        $el.val( currDevice._id );
+                    } else if ( this.deviceId ) {
+                        $( '<option></option>' )
+                            .val( this.deviceId )
+                            .text( this.deviceId + " (unknown device)" )
+                            .appendTo( $el );
+                        $el.val( this.deviceId );
+                    } else {
+                        $el.val( "" );
+                    }
+                    $el.on( 'change', ( ev ) => {
+                        var $e = $( ev.currentTarget );
+                        var id = $e.val();
+                        this.deviceId = id;
+                        $( '#node-input-deviceId' ).val( id ).trigger( 'change' );
+                        $( '#node-input-description' )
+                            .val( data.devices[ id ]?.name || id )
+                            .trigger( 'change' );
+                    });
+                }).fail( ( jqxhr, textStatus, error ) => {
+                    console.error( "request failed:", jqxhr, textStatus, error );
+                });
+            } catch ( err ) {
+                $( 'select#ezlo-device' ).empty();
+                console.error( err );
+            }
         },
         oneditsave: function() {
         }
@@ -236,7 +371,7 @@
         color:"#d8bfd8",
         inputs: 1,
         outputs: 1,
-        icon: "ezlo-housemode.svg",
+        icon: "bridge.svg",
         label: function() {
             //console.log("in house mode label func, this is",this);
             return "House Mode";
@@ -265,7 +400,7 @@
         color:"#d8bfd8",
         inputs: 1,
         outputs: 1,
-        icon: "ezlo-hub.svg",
+        icon: "bridge.svg",
         label: function() {
             return this.name || "ezlo hub";
         },

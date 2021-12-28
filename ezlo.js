@@ -359,4 +359,21 @@ module.exports = function (RED) {
     }
     RED.nodes.registerType( "ezlo hub info", EzloHubUINode, {
     });
+
+    RED.httpAdmin.get( "/devicelist/:id", RED.auth.needsPermission( "ezlo.read" ), ( req, res ) => {
+        console.log("request for device list for",req.params.id);
+        let hubNode = RED.nodes.getNode( req.params.id );
+        if ( ! hubNode ) {
+            res.status( 404 ).send( "Node not found" );
+            return;
+        }
+        hubNode.connect().then( api => {
+            let ans = {};
+            ans.devices = api.getAllDevices();
+            ans.items = api.getAllItems();
+            res.json( ans );
+        }).catch( err => {
+            res.status( 500 ).send( String( err ) );
+        });
+    });
 };
