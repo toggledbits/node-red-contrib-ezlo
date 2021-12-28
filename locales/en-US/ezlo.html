@@ -1,0 +1,98 @@
+<script type="text/x-red" data-help-name="ezlo item">
+    <p>Interface to an item, which is a value attached to a device. On Ezlo hubs, you manipulate devices by setting
+    item values. For example, rather than sending a "set level" action to a dimmer to change its brightness, you set the
+    value of the dimmer device's <tt>dimmer</tt> item. So this node has one input and one output. State changes for the
+    item appear on the output. Requests to modify the value are sent to the input.
+
+    <h3>Configuration</h3>
+    <p>itemID is the ID of the item. Each items has a unique ID.</p>
+    <p>Description of the item; this is really just for your notes to help you remember what it is.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">a new value <span class="property-type">number | string | object</span></dt>
+        <dd>If not provided, the item's current value is sent to the output; if provided, the node will attempt to
+            set the item's value to that given. The type of the data must match the expected type for the item, according
+            to the <a href="https://api.ezlo.com/devices/items/index.html" target="_blank">Ezlo API documentation</a>.
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>item-info <span class="property-type">number | string | object</span></dt>
+        <dd>The current value for the item. It will be reported in the format directed by configuration: a simple value,
+            an abbreviated response (an object containing the item ID, item name, and current value), or the full item
+            response given by the Ezlo API.</dd>
+    </dl>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo device">
+    <p>Interface to a device on the Ezlo hub. Device properties/attributes like dimmer level, on/off switch state,
+        and operating mode are <em>items</em> in the Ezlo world, so you would use an <em>ezlo item</em> node to access them. The properties
+        of a device are its characteristics (e.g. <code>batteryPowered</code>, <code>manufacturer</code> and </code>model</code>, etc.),
+        and are typically read-only.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">no payload</dt>
+        <dd>Device nodes will respond with the current device infomation if sent an empty payload. All other payloads are invalid.</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>device-info <span class="property-type">object</span></dt>
+        <dd>The current device information is sent as the message payload, in unmodified form from the Ezlo API response.</dd>
+    </dl>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo house mode">
+    <p>The *ezlo house mode* node provides an interface to the Ezlo hub's house mode.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">new mode <span class="property-type">number | string</span></dt>
+        <dd>If provided, the node attempts to change the house mode to the given value. The value may either be a numeric
+            mode ID (1-4 as currently defined), or one of the known mode strings (<code>Home</code>, <code>Away</code>, <code>Night</code>, <code>Vacation</code>,
+            case-sensitive).
+            If the payload is empty (no new mode is given), the current house mode is immediately reported on the output.
+        </dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">mode-info <span class="property-type">number | string | object</span></dt>
+        <dd>Depending on the output format selected in the node's configuration, the output will either be a string (the
+            name of the current house mode), a number (it's ID), a simple object containing both (e.g. <code>{ "id": "1", "name": "Home" }</code>
+            or a slightly more complex object containing change status and mode. The last form will send an object with <code>action</code> key
+            either <code>current</code> or <code>changing</code>. if <code>current</code>, the <code>current</code> key will contain the ID and
+            name of the current house mode.
+            If <coded>changing</code>, the <code>from</code> and <code>to</code> keys will contain the ID and name of the current and pending house mode, respectively. For example: <code>{ "action": "changing", "from": { "id": "1", "name": "Home" }, "to": { "id": "2", "name": "Away" } }</code>
+        </dd>
+    </dl>
+</script>
+
+<script type="text/x-red" data-help-name="ezlo hub info">
+    <p>Interface to Ezlo hub. Allows you to detect online/offline state of hub, and send any API action to the hub via
+    its input.</p>
+
+    <h3>Inputs</h3>
+    <dl class="message-properties">
+        <dt class="optional">method <span class="property-type">string</span></dt>
+        <dd>If provided, the node attempts to run the specific method (i.e. make an API call/action request) to the hub; the result
+            of the action will be provided on the output. If not provided, the node reports the current state of the hub connection
+            on its output.</dd>
+        <dt class="optional">params <span class="property-type">object</span></dt>
+        <dd>If provided and <code>method</code> is also provided, the object is sent as the parameters of the requested method.
+            Most methods take parameters, which are given within this object as key/value pairs.</dd>
+    </dl>
+
+    <h3>Outputs</h3>
+    <dl class="message-properties">
+        <dt>status-object <span class="property-type">object</span></dt>
+        <dd>The *status* field of this response object will be reported as <code>offline</code> or
+            <code>online</code> depending on the current state of the connection to the hub.</dd>
+    </dl>
+    <dl class="message-properties">
+        <dt>result-object <span class="property-type">object</span></dt>
+        <dd>If the payload contains a <code>result</code> field, the data is the result of the request action (method).</dd>
+    </dl>
+</script>

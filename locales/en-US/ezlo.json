@@ -1,0 +1,49 @@
+{
+    "ezlo": {
+        "label": {
+            "hub": "Hub",
+            "name": "Name",
+            "itemid": "Item ID",
+            "deviceid": "Device ID",
+            "description": "Description",
+            "outputformat": "Output",
+            "serialNumber": "Serial Number",
+            "serialExample": "12345678",
+            "autoConnect": "Auto-Connect",
+            "localIP": "Local IP Address",
+            "ipExample": "nnn.nnn.nnn.nnn",
+            "accessAnonymous": "Offline Anonymous Access",
+            "debug": "Debug Logging",
+            "username": "Username",
+            "password": "Password"
+        },
+        "placeholder": {
+            "name": "Name",
+            "itemid": "Item ID",
+            "deviceid": "Device ID",
+            "itemdescription": "Description of the item (optional)",
+            "devicedescription": "Description of the device (optional)"
+        },
+        "tabs-label": {
+            "connection": "Connection",
+            "security": "Security",
+            "options": "Options"
+        },
+        "item-response": {
+            "simple": "Simple (value only)",
+            "abbr": "Abbreviated (id, name, value)",
+            "full": "Full"
+        },
+        "housemode-response": {
+            "name": "Current only, name (string) only",
+            "id": "Current only, ID (number) only",
+            "curr": "Current only, ID and name (object)",
+            "full": "Current and Pending (objects)"
+        },
+        "options": {
+            "anonUnchanged": "Leave current setting",
+            "anonEnabled": "Disable anonymous access",
+            "anonDisabled": "Enable anonymous access"
+        }
+    }
+}
