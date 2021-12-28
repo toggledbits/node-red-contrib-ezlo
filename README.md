@@ -1,6 +1,6 @@
 # Ezlo nodes for Node-Red
 [![Platform](https://img.shields.io/badge/platform-Node--RED-red)](https://nodered.org)
-![License](https://img.shields.io/github/license/toggledbits/node-red-contrib-ezlo.svg)
+![License](https://img.shields.io/github/license/toggledbits/node-red-contrib-ezlo)
 <!--
 [![NPM](https://img.shields.io/npm/v/node-red-contrib-ezlo?logo=npm)](https://www.npmjs.org/package/node-red-contrib-ezlo)
 [![Known Vulnerabilities](https://snyk.io/test/npm/node-red-contrib-ezlo/badge.svg)](https://snyk.io/test/npm/node-red-contrib-ezlo)
