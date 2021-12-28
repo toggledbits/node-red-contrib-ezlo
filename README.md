@@ -30,7 +30,7 @@ Please report issues on the [Github repository for the project](https://github.c
 <a target="blank" href="https://blockchain.com/btc/address/1KHq3LGf1F9GMSnZ658ht873n3GuX4tsVF"><img src="https://img.shields.io/badge/Donate-Bitcoin-green.svg"/></a>
 <a target="blank" href="https://www.toggledbits.com/donate"><img src="https://img.shields.io/badge/Donate-PayPal-blueviolet.svg"/></a>
 
-<a href="https://www.buymeacoffee.com/toggledbits" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Dram" height="41" width="174"></a>
+<a target="_blank" href="https://www.buymeacoffee.com/toggledbits"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Dram" height="41" width="174"></a>
 
 ## Release Notes
 
