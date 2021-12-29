@@ -33,6 +33,27 @@ module.exports = function (RED) {
         }
     }
 
+    function _fmt( node, ...args ) {
+        let m = args.map( el => String(el) );
+        return `<${Object.getPrototypeOf(node||{}).constructor.name}>${node.id}: ${m.join(" ")}`;
+    }
+
+    function L( node, ...args ) {
+        node.log( _fmt( node, ...args ) );
+    }
+
+    function E( node, ...args ) {
+        node.error( _fmt( node, ...args ) );
+    }
+
+    function W( node, ...args ) {
+        node.warn( _fmt( node, ...args ) );
+    }
+
+    function D( node, ...args ) {
+        node.debug( _fmt( node, ...args ) );
+    }
+
     // -----------------------------------------------------------------------------------------
 
     function EzloHubNode(config) {
@@ -41,9 +62,9 @@ module.exports = function (RED) {
         node.name = config.name;
         node.serial = config.serialNumber;
         node.localIP = config.localIP;
-        node.autoConnect = config.autoConnect || true;
+        node.autoConnect = !!config.autoConnect;
         node.accessAnonymous = config.accessAnonymous;
-        node.debug = !! config.debug;
+        node.debug = !!config.debug;
         node.connectPromise = false;
         node.children = {};
         node.api = false;
@@ -60,8 +81,8 @@ module.exports = function (RED) {
 
         node.deregister = function( ezloNode ) {
             delete node.children[ ezloNode.id ];
-            if ( 0 === Object.keys( node.children ) ) {
-                node.close();
+            if ( node.autoConnect && 0 === Object.keys( node.children ) ) {
+                node.disconnect();
             }
         };
 
@@ -70,20 +91,20 @@ module.exports = function (RED) {
                 node.connectPromise = new Promise( (resolve,reject) => {
                     if ( ! node.api.connected() ) {
                         node.connecting = true;
-                        console.log( "starting Ezlo API client" );
+                        L( node, "starting Ezlo API client" );
                         node.api.start().then( () => {
-                            console.log( "Connected to hub!" );
+                            L( node, "Connected to hub!" );
                             setStatusConnected( node, true );
                             resolve( node.api );
                         }).catch( err => {
-                            console.error( err );
+                            E( node, err );
                             setStatusDisconnected( node, true );
                             reject( err );
                         }).finally( () => {
                             node.connecting = false;
                         });
                     } else {
-                        console.log( "Already connected to hub" );
+                        L( node, "Already connected to hub" );
                         resolve( node.api );
                     }
                 });
@@ -91,15 +112,15 @@ module.exports = function (RED) {
             return node.connectPromise;
         };
 
-        node.close = async function() {
+        node.disconnect = async function() {
+            setStatusDisconnected( node, true );
             if ( node.api.connected() ) {
                 try {
                     await node.api.stop();
                 } catch ( err ) {
-                    console.error( err );
+                    E( node, err );
                 }
             }
-            setStatusDisconnected( node, true );
             node.connectPromise = false;
         };
 
@@ -107,9 +128,16 @@ module.exports = function (RED) {
             return node.api;
         };
 
+        node.on( 'close', () => {
+            L( node, "closing" );
+            node.disconnect();
+        });
+
         /* Create the API client instance, but don't connect it yet */
         let opts = { serial: node.serial };
-        opts.debug = node.debug;
+        if ( node.debug ) {
+            opts.debug = (...args) => L( node, ...args );
+        }
         if ( "" !== ( node.credentials.username || "" ) ) {
             opts.username = node.credentials.username;
             opts.password = node.credentials.password;
@@ -117,7 +145,7 @@ module.exports = function (RED) {
         if ( node.localIP ) {
             opts.endpoint = node.localIP;
         }
-        //console.log( 'creating ezlo API client', opts );
+        //L( 'creating ezlo API client', opts );
         node.api = new EzloClient( opts );
         node.api.on( 'offline', () => {
             setStatusDisconnected( node, true );
@@ -125,6 +153,10 @@ module.exports = function (RED) {
         node.api.on( 'online', () => {
             setStatusConnected( node, true );
         });
+        if ( ! node.autoConnect ) {
+            /* If not auto-conneect, just start connection */
+            node.connect();
+        }
     }
     RED.nodes.registerType( "ezlo-hub", EzloHubNode, {
         credentials: {
@@ -145,31 +177,28 @@ module.exports = function (RED) {
         } else {
             msg.payload = data.value;
         }
-        console.log(node.id,'sending',msg);
+        D( node, 'sending', msg);
         node.send( msg );
     }
 
     function EzloItemNode(config) {
-        console.log(this.id,"creating with",config);
         RED.nodes.createNode(this, config);
         const node = this;
+        D( node, "creating with", config);
         node.itemId = config.itemId;
         node.hub = config.hub;
         node.hubNode = RED.nodes.getNode( node.hub );
         node.responseType = config.responseType;
-        node.name = node.itemId;
+        node.description = config.description;
 
         setStatusDisconnected( node );
         if ( node.hubNode ) {
             node.hubNode.register( node );
             node.hubNode.getAPI().on( 'item-updated', data => {
-                console.log(node.id,"handling item-updated",data.name);
-                if ( data.deviceName ) {
-                    node.name = `${data.deviceName}/${data.name}`;
-                } else if ( data.deviceId ) {
-                    node.name = `${data.deviceId}/${data.name}`;
+                if ( data._id === node.itemId ) {
+                    D( node, "handling item-updated", data.name, data );
+                    item_response( node, data );
                 }
-                item_response( node, data );
             });
         }
 
@@ -180,13 +209,17 @@ module.exports = function (RED) {
                 if ( data ) {
                     item_response( node, data );
                 } else {
-                    console.error( node.id,"item",node.itemId,"no longer exists" );
+                    E( node, "item",node.itemId,"no longer exists" );
                 }
             } else {
                 node.hubNode.getAPI().setItemValue( node.itemId, msg.payload ).catch( err => {
-                    console.error(node.id,"failed item",node.itemId,"set to",msg.payload,":",err);
+                    E( node, "failed item",node.itemId,"set to",msg.payload,":",err);
                 });
             }
+        });
+
+        this.on( 'close', () => {
+            node.hubNode.deregister( node );
         });
     }
     RED.nodes.registerType("ezlo item", EzloItemNode, {
@@ -194,23 +227,23 @@ module.exports = function (RED) {
 
     function EzloDeviceNode(config) {
         RED.nodes.createNode(this, config);
-        console.log(this,"creating EzloDeviceNoded with",config);
         const node = this;
+        D( node, "creating EzloDeviceNode with", config );
         node.deviceId = config.deviceId;
         node.hub = config.hub;
         node.hubNode = RED.nodes.getNode( node.hub );
-        node.name = node.deviceId;
+        node.description = config.description;
 
         setStatusDisconnected( node );
         if ( node.hubNode ) {
             node.hubNode.register( node );
             node.hubNode.getAPI().on( 'device-updated', data => {
-                if ( data.deviceName ) {
-                    node.name = data.deviceName;
+                D( node, "device-updated", data );
+                if ( data._id === node.deviceId ) {
+                    let msg = { payload: data };
+                    D( node, "handling device-updated for", data.name, "- sending", msg);
+                    node.send( msg );
                 }
-                let msg = { payload: data };
-                console.log(node.id,"handling device-updated",data.name,"sending",msg);
-                node.send( msg );
             });
         }
 
@@ -221,10 +254,10 @@ module.exports = function (RED) {
                 if ( data ) {
                     node.send( { payload: data } );
                 } else {
-                    console.error( node.id,"device",node.deviceId,"no longer exists" );
+                    E( node, "device",node.deviceId,"no longer exists" );
                 }
             } else {
-                console.error(node.id,"unrecognized input payload:",msg.payload);
+                E( node, "unrecognized input payload:",msg.payload );
             }
         });
     }
@@ -258,13 +291,13 @@ module.exports = function (RED) {
         if ( node.hubNode ) {
             node.hubNode.register( node );
             node.hubNode.getAPI().on( 'mode-changed', data => {
-                console.log(node.id,"handling mode changed",data);
+                L( node, "handling mode change", data );
                 send_current_housemode( node, data );
                 node.lastMode = data;
             });
             node.hubNode.getAPI().on( 'mode-changing', data => {
                 if ( "full" === node.responseType ) {
-                    console.log(node.id,"handling mode changing",data);
+                    L( node, "handling mode change pending", data );
                     let msg = { payload: { action: "changing" } };
                     msg.payload.from = node.lastMode;
                     msg.payload.to = data;
@@ -274,12 +307,12 @@ module.exports = function (RED) {
         }
 
         this.on( 'input', function( msg ) {
-            console.log(node.id,"handling input",msg);
+            D( node, "handling input", msg );
             let params;
             if ( "object" === typeof( msg.payload ) ) {
                 if ( "cancel" === msg.payload.action ) {
                     node.hubNode.getAPI().send( "hub.modes.cancel_switch", {} ).catch( err => {
-                        console.error( node.id, 'attempt to cancel house mode change:', err );
+                        E( node.id, 'attempt to cancel house mode change:', err );
                     });
                     return;
                 } else {
@@ -302,8 +335,12 @@ module.exports = function (RED) {
                 return;
             }
             node.hubNode.getAPI().send( { api: "2.0", method: "hub.modes.switch" }, params ).catch( err => {
-                console.error( node.id,'attempting ezlo house mode change to',msg.payload,':',err );
+                E( node.id,'attempting ezlo house mode change to',msg.payload,':',err );
             });
+        });
+
+        this.on( 'close', () => {
+            node.hubNode.deregister( node );
         });
     }
     RED.nodes.registerType( "ezlo house mode", EzloHousemodeNode, {
@@ -328,14 +365,14 @@ module.exports = function (RED) {
         }
 
         this.on( 'input', function( msg ) {
-            console.log(node.id,"handling input",msg);
+            D( node, "handling input", msg );
             if ( "object" === typeof( msg.payload ) ) {
                 if ( msg.payload.method ) {
                     node.hubNode.getAPI().send( msg.payload, msg.payload.params || {} ).then( data => {
-                        console.log(node.id,"request",msg.payload,"returned",data);
+                        L( node, "request", msg.payload, "returned", data );
                         node.send( { payload: { request: msg.payload, result: data.result } } );
                     }).catch( err => {
-                        console.error(node.id,"attempted",msg.payload,"result",err);
+                        E( node, "attempted", msg.payload, "result", err );
                         node.send( {
                             payload: {
                                 request: msg.payload,
@@ -348,20 +385,23 @@ module.exports = function (RED) {
                         });
                     });
                 } else {
-                    console.error(node.id,"unrecognized action in payload",msg.payload);
+                    E( node, "unrecognized action in payload", msg.payload );
                 }
             } else if ( ! isEmpty( msg.payload ) ) {
-                console.error(node.id,"invalid payload",msg.payload);
+                E( node, "invalid payload", msg.payload );
             } else {
                 node.send( { payload: { status: node.hubNode.getAPI().connected() ? 'online' : 'offline' } } );
             }
+        });
+
+        this.on( 'close', () => {
+            node.hubNode.deregister( node );
         });
     }
     RED.nodes.registerType( "ezlo hub info", EzloHubUINode, {
     });
 
     RED.httpAdmin.get( "/devicelist/:id", RED.auth.needsPermission( "ezlo.read" ), ( req, res ) => {
-        console.log("request for device list for",req.params.id);
         let hubNode = RED.nodes.getNode( req.params.id );
         if ( ! hubNode ) {
             res.status( 404 ).send( "Node not found" );
