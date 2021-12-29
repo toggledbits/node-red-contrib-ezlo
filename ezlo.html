@@ -135,8 +135,8 @@
         defaults: {
             name: { value: "", required: false },
             serialNumber: { value:"", required: true },
-            localIP: { value: "", required:false, validate:RED.validators.number(true)},
-            autoConnect: { value: true },
+            localIP: { value: "", required: false },
+            autoConnect: { value: false, required: false },
             accessAnonymous: { value: "" },
             debug: { value: false, required: false }
         },
