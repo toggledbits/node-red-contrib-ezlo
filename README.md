@@ -18,6 +18,12 @@ I try to be responsive to questions and [issues](https://github.com/toggledbits/
 
 ![image](https://user-images.githubusercontent.com/19241798/147771403-578cabd4-9628-41e3-a13f-ebec834be3e4.png)
 
+## Installing/Updating
+
+Installing or updating these nodes should be as simple as:
+
+        npm i -g node-red-contrib-ezlo
+
 ## Nodes
 
 ### `ezlo item` node
@@ -94,15 +100,17 @@ At the input, if a message has no payload, the current online/offline state will
 
 ## Hub Connections
 
+**Quick Start/TLDR:** Provide the serial number of your hub, and the username and password of an Ezlo account for the hub; if you know it, provide the hub's (stable) IP address. Bob's your uncle.
+
 When configuring any of the above nodes, you will need to specify the hub. This is a configuration node that represents a connect to your Ezlo hub(s). There are three ways to connect to the hub:
 
-1. Via the Ezlo Cloud Relay: the hub maintains a persist tunnel to the Ezlo cloud, and by connecting to the cloud relay, the hub's API can be accessed by exchanging data with the cloud, which proxies/relays the data to/from the hub. This works in all circumstances (as long as there is Internet access for the hub and Ezlo's cloud services are up).
+1. Via the Ezlo Cloud Relay: Ezlo hubs maintain a persist tunnel to the Ezlo service cloud. The node can connect to the Ezlo cloud and access the hub's API by exchanging data with the cloud, which proxies/relays the data to/from the hub over the tunnel. This works in all circumstances (as long as there is Internet access for the hub and Ezlo's cloud services are up and connected).
 2. Via the local API WebSocket with authentication: using a *local access token*, a connection to the hub's local API WebSocket may be possible. The access token is obtained from the Ezlo cloud services, so that access is still required, but the token is long-lived and reconnections without re-authentication are possible within the token's lifetime. The local API Websocket is not available on older Atom and PlugHub hubs (only cloud relay is allowed/possible).
 3. Via the local API WebSocket without authentication: to eliminate the Internet- and cloud-dependency, you can configure the hub for *offline anonymous access*, but this comes with a trade-off to the hub's security (and again, this is not available on some hub models).
 
-For cloud relay access, which is the simplest and quickest way to get started, you only need to configure the serial number and an Ezlo account username and password. It is recommended that you create an additional user account to keep *Node-Red*'s access separate from your master Ezlo account credentials. New users can be created using their mobile app.
+For cloud relay access, which is the simplest and quickest way to get started, you only need to configure the serial number and an Ezlo account username and password. It is recommended that you create an additional user account to keep *Node-Red*'s access separate from your master Ezlo account credentials. New users can be created using their mobile app. This is generally the least desirable way to connect to the hub, however, as it is heavily dependency on the uptime of your Internet access and the Ezlo cloud services, and adds latency to every data exchange/command. Unfortunately, for older Atom and PlugHub models, this is the only option available (and for this reason, these models are a poor choice for any serious home automation, in the author's opinion).
 
-For authenticated local access, you need to provide the serial number, Ezlo account username and password, and the `Local IP Address` of the hub. Your hub *must* have a static IP address or DHCP reservation so that its address never changes.
+For authenticated local access, you need to provide the serial number, Ezlo account username and password, and the `Local IP Address` of the hub. Your hub *must* have a static IP address or DHCP reservation so that its address never changes. Although it is still necessary for the node to connect to the cloud to refresh the access token, these accesses are fewer and farther between, and the local access to the API reduces latency of data and actions considerably.
 
 For unauthentication local access, you first need to be aware that you are removing a layer of security from your hub and allowing any device on your network to connect to it without authentication. This is a trade-off that must be made if you deem the risk of Internet-access or cloud dependency greater than the risk of unauthorized local access to your hub. To enable anonymous access, you will first need to have authenticated access either via Ezlo's cloud relay (without `Local IP Address`) or locally (with `Local IP Address`). Then, you can either [set it through the Ezlo API yourself manually](https://api.ezlo.com/hub/local_mode/index.html#hubofflineanonymous_accessenabledset), or let the hub configuration node do it by setting the `Offline Anonymous Access` field under *Options* `Enable Anonymous Access`. Then save and deploy. The node will reconnect to the hub, set the flag, and then reboot the hub. When the hub comes back, it will reconnect, but still using authenticated access. At this point, you can remove the `username` from the hub configuration node, and this is the signal to the hub configuration node to connect anonymously. You can leave the `password` field set in case you need it later. If you later decide to disable anonymous access and return to full authentication, all you need to do is restore the `username` value and set the `Offline Anonymous Access` option to `Disable Anonymous Access`.
 
