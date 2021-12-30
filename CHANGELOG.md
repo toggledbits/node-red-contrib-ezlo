@@ -1,5 +1,10 @@
 # Change Log for node-red-contrib-ezlo
 
+## 0.1.2 (21364)
+
+* Mostly documentation updates and details.
+* Fix a couple of localization strings.
+
 ## 0.1.1 (21363)
 
 * Use node logging rather than console logging in mode cases.
