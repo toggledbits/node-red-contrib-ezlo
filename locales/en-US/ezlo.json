@@ -42,8 +42,8 @@
         },
         "options": {
             "anonUnchanged": "Leave current setting",
-            "anonEnabled": "Disable anonymous access",
-            "anonDisabled": "Enable anonymous access"
+            "anonEnable": "Disable anonymous access",
+            "anonDisable": "Enable anonymous access"
         }
     }
 }
