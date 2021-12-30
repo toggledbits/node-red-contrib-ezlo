@@ -142,7 +142,7 @@ Please see the [CHANGELOG](/CHANGELOG.md) file.
 
 ## Author
 
-My name is Patrick Rigney, and I've been an active developer in the IoT space for about 8 years. My background is in EECS. I'm a current developer of integrations and tools for Vera, Ezlo, Hubitat, Home Assistant, and now, *Node-Red*. One of my biggest independent projects is [Reactor](https://reactor.toggledbits.com), a code-less automation engine for people who find even *Node-Red* too daunting.
+My name is Patrick Rigney, and I've been an active developer in the IoT space for about 8 years. My background is in EECS. I'm a current independent developer of integrations and tools for Vera, Ezlo, Hubitat, Home Assistant, and now, *Node-Red*. One of my biggest independent projects is [Reactor](https://reactor.toggledbits.com), a code-less automation engine for people who find even *Node-Red* too daunting.
 
 ## License
 
