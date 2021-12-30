@@ -22,7 +22,7 @@ I try to be responsive to questions and [issues](https://github.com/toggledbits/
 
 ### `ezlo item` node
 
-The *ezlo item* node is probably the node you will use the most. On Ezlo hubs, *devices* have *items*, and items are the containers for state on the device. For example, when a switch device is turned on, its `switch` item's value will go from *false* to *true*. A dimmer changes from 25% to 100% will have a `dimmer` item the value of which will change from 25 to 100. 
+The *ezlo item* node is probably the node you will use the most. On Ezlo hubs, *devices* have *items*, and items are the containers for state on the device. For example, when a switch device is turned on, its `switch` item's value will go from *false* to *true*. A dimmer changes from 25% to 100% will have a `dimmer` item the value of which will change from 25 to 100.
 
 The *ezlo item* node will send to its output every change to the item's value. You can choose one of three different output formats for the payload:
 
@@ -38,7 +38,7 @@ If you send no payload or an empty payload to an *ezlo item* node, it will echo 
 
 ### `ezlo device` node
 
-The *ezlo device* node maps to an Ezlo device and provides the non-state information about the device (e.g. its name, if it's battery powered, if it's reachable, etc.). 
+The *ezlo device* node maps to an Ezlo device and provides the non-state information about the device (e.g. its name, if it's battery powered, if it's reachable, etc.).
 
 The output of this node is the unfiltered, unmodified Ezlo device structure.
 
@@ -48,33 +48,35 @@ Like the *ezlo item* node, you need to provide the device ID, and the easiest wa
 
 ### `ezlo house mode` node
 
-The *ezlo house mode* node provides information about the current (and pending, optionally) house mode, and can change the house mode. 
+The *ezlo house mode* node provides information about the current (and pending, optionally) house mode, and can change the house mode.
 
 The output of the node can be in one of four forms (you choose one):
 
 * Current only, name (string) &mdash; the output sends the current house mode name only as a string when it changes;
 * Current only, ID (number) &mdash; the output sends the current house mode ID only as a number when it changes;
 * Current only, ID and name (object) &mdash; the output sends the current house mode ID and name in an object of the form: `{ "id": 1, "name": "Home" }`
-* Current and Pending (objects) &mdash; when the house mode change starts, an object of the first form shown below is sent; when the change completes (or is cancelled), an object of the second form is sent:
+* Current and Pending (objects) &mdash; when the house mode change starts, an object with the current and pending modes is sent to the output:
 
         {
-		    "action": "changing",
-			"from": {
-			    "id": 1, "name": "Home"
-			},
-			"to": {
-			    "id": 2, "name": "Away"
-			}
-		}
-		
-		{
-			"action": "current",
-			"current": {
-				"id": 1, "name": "Away"
-			}
-		}
+            "action": "changing",
+            "from": {
+                "id": 1, "name": "Home"
+            },
+            "to": {
+                "id": 2, "name": "Away"
+            }
+        }
 
-The input of the *ezlo house mode* node accepts either a numeric house mode ID or string mode name as its payload, and will initiate a change with the hub to the given mode. If an object of the form `{ "action": "cancel" }` is presented at the input, the node will attempt to cancel any pending house mode change. If there no payload (or an empty payload) presented on a message to the input, the node will respond by sending the current mode to the output (in the form configured).
+    When a house mode change completes (or is cancelled), an object of this form is sent to the output:
+
+        {
+            "action": "current",
+            "current": {
+                "id": 1, "name": "Away"
+            }
+        }
+
+The input of the *ezlo house mode* node accepts either a numeric house mode ID or string mode name as its payload, and will initiate a change with the hub to the given mode. If an object of the form `{ "action": "cancel" }` is given as the input payload, the node will attempt to cancel any pending house mode change. If there no payload (or an empty payload) presented on a message to the input, the node will respond by sending the current mode to the output (in the form configured).
 
 ### `ezlo hub` node
 
@@ -83,18 +85,24 @@ The *ezlo hub* node provides basic up/down information about the hub by sending 
 At the input, if a message has no payload, the current online/offline state will be reported at the output. If the message has a payload with the key `method` defined, the node will send the payload to the hub as an API request; the optional `params` key can be included to include any required parameters as defined by the Ezlo API. It is thus possible to run pretty much any API action. The result of the action will be presented at the output in the following form:
 
         {
-		    "request": { ...repeats the request input... }
-			"result": { ...contains the result from the hub }
-			"error": { ...contains error info from the hub }
-		}
-	
-	The `result` key will contain an object that contains the body of the hub's response to the action, if it succeeded. If it failed, the `result` key will not be present, and the `error` key will be present with the `message`, `code` and `reason` given by the hub.
+            "request": { ...repeats the request input... }
+            "result": { ...contains the result from the hub }
+            "error": { ...contains error info from the hub }
+        }
+
+    The `result` key will contain an object that contains the body of the hub's response to the action, if it succeeded. If it failed, the `result` key will not be present, and the `error` key will be present with the `message`, `code` and `reason` given by the hub.
 
 ## Issues
 
-Please report issues on the [Github repository for the project](https://github.com/toggledbits/node-red-contrib-ezlo/issues). Since this is my first effort for Node-Red, I'm interested in any feedback any of you may have, particular experienced NR node developers.
+Please report issues or questions on the [Github repository for the project](https://github.com/toggledbits/node-red-contrib-ezlo/issues). Since this is my first effort for Node-Red, I'm interested in any feedback any of you may have, particular experienced NR node developers.
+
+You can also find me in the [Node-Red forum](https://discourse.nodered.org/) as [@toggledbits](https://discourse.nodered.org/u/toggledbits/summary), and I'm happy to answer questions there, but if you're reporting a bug, please do so at Github issues (linked above) to help keep me organized.
 
 **Known Issue:** To iterate what was stated above, the selection of items and devices isn't yet as smooth as I want it to be (and the way I want it to work may be beyond the limits of what the Node-Red API will allow). To get the device and item fields to populate, it may be necessary to choose the hub on the node first, the click "Done" to exit the edit of the unfinished node, then go back into the node, at which point the lists should populate. On the very first node added or when a new hub is added, it may even be necessary to "Deploy" before going back to edit to get the menus to fill.
+
+**Known Issue:** Ezlo hubs on recent firmware issue an error (bad parameters) when you attempt to change the house mode to the current mode (i.e. set it to what it already is). This is a logged error only and produces no other output (i.e. nothing at the node's output), so it's benign. Just be aware of it if you see it in the logs.
+
+**Known Issue:** Some versions of Ezlo firmware will refuse to open connections after a hub reboot for a couple of minutes. They do recover, but it's a firmware issue and there's nothing I can do about it.
 
 ## Donations Fuel This Project!
 
@@ -107,6 +115,10 @@ Please report issues on the [Github repository for the project](https://github.c
 ## Release Notes
 
 Please see the [CHANGELOG](/CHANGELOG.md) file.
+
+## Author
+
+My name is Patrick Rigney, and I've been an active developer in the IoT space for about 8 years. My background is in EECS. I'm a current developer of integrations and tools for Vera, Ezlo, Hubitat, Home Assistant, and now, *Node-Red*. One of my biggest independent projects is [Reactor](https://reactor.toggledbits.com), a code-less automation engine for people who find even *Node-Red* too daunting.
 
 ## License
 
