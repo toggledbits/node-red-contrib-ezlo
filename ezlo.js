@@ -90,19 +90,23 @@ module.exports = function (RED) {
             if ( ! node.connectPromise ) {
                 node.connectPromise = new Promise( (resolve,reject) => {
                     if ( ! node.api.connected() ) {
+                        setStatusDisconnected( node, true );
                         node.connecting = true;
-                        L( node, "starting Ezlo API client" );
-                        node.api.start().then( () => {
-                            L( node, "Connected to hub!" );
-                            setStatusConnected( node, true );
-                            resolve( node.api );
-                        }).catch( err => {
-                            E( node, err );
-                            setStatusDisconnected( node, true );
-                            reject( err );
-                        }).finally( () => {
-                            node.connecting = false;
-                        });
+                        try {
+                            L( node, "Starting Ezlo API client" );
+                            node.api.start().then( () => {
+                                L( node, "Ezlo API client started" );
+                                setStatusConnected( node, true );
+                                resolve( node.api );
+                            }).catch( err => {
+                                E( node, err );
+                                reject( err );
+                            }).finally( () => {
+                                node.connecting = false;
+                            });
+                        } catch ( err ) {
+                            console.error( "api start", err );  //???
+                        }
                     } else {
                         L( node, "Already connected to hub" );
                         resolve( node.api );
@@ -312,7 +316,7 @@ module.exports = function (RED) {
             if ( "object" === typeof( msg.payload ) ) {
                 if ( "cancel" === msg.payload.action ) {
                     node.hubNode.getAPI().send( "hub.modes.cancel_switch", {} ).catch( err => {
-                        E( node.id, 'attempt to cancel house mode change:', err );
+                        E( node, 'attempt to cancel house mode change:', err );
                     });
                     return;
                 } else {
@@ -335,7 +339,7 @@ module.exports = function (RED) {
                 return;
             }
             node.hubNode.getAPI().send( { api: "2.0", method: "hub.modes.switch" }, params ).catch( err => {
-                E( node.id,'attempting ezlo house mode change to',msg.payload,':',err );
+                E( node, 'attempting ezlo house mode change to', msg.payload, 'failed:', err );
             });
         });
 
