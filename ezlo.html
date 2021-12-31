@@ -109,16 +109,16 @@ SOFTWARE.
     <div id="node-config-ezlo-hub-tabs-content" style="min-height: 150px;">
         <div id="ezlo-hub-tab-connection" style="display: none">
             <div class="form-row">
-                <label for="node-config-input-serialNumber"><i class="fa fa-id-card-o"></i> <span data-i18n="ezlo.label.serialNumber"></span></label>
-                <input type="text" id="node-config-input-serialNumber" style="width: auto" data-i18n="[placeholder]ezlo.label.serialExample">
-            </div>
-            <div class="form-row" style="margin-bottom:0">
-                <input type="checkbox" id="node-config-input-autoConnect" style="margin: 0 5px 0 104px; display: inline-block; width: auto;">
-                <label for="node-config-input-autoConnect" style="width: auto"><span data-i18n="ezlo.label.autoConnect"</span></label>
+                <label for="node-config-input-serialNumber" style="width: 25%"><i class="fa fa-id-card-o"></i> <span data-i18n="ezlo.label.serialNumber"></span></label>
+                <input type="text" style="width: auto;" id="node-config-input-serialNumber" data-i18n="[placeholder]ezlo.label.serialExample">
             </div>
             <div class="form-row">
-                <label for="node-config-input-localIP"><i class="fa fa-at"></i> <span data-i18n="ezlo.label.localIP"></span></label>
-                <input type="text" id="node-config-input-localIP" style="width: auto;" data-i18n="[placeholder]ezlo.label.ipExample">
+                <label for="node-config-input-localIP" style="width: 25%"><i class="fa fa-at"></i> <span data-i18n="ezlo.label.localIP"></span></label>
+                <input type="text" style="width: auto;" id="node-config-input-localIP" data-i18n="[placeholder]ezlo.label.ipExample">
+            </div>
+            <div class="form-row">
+                <input type="checkbox" id="node-config-input-autoConnect" style="margin-left: 25%; display: inline-block; width: auto;">
+                <label for="node-config-input-autoConnect"><span data-i18n="ezlo.label.autoConnect"</span></label>
             </div>
         </div>
         <div id="ezlo-hub-tab-security" style="display:none">
@@ -133,15 +133,15 @@ SOFTWARE.
         </div>
         <div id="ezlo-hub-tab-options" style="display:none">
             <div class="form-row">
-                <label style="width: auto;" for="node-config-input-accessAnonymous"><i class="fa fa-cog"></i> <span data-i18n="ezlo.label.accessAnonymous"></span></label>
+                <label style="width: 33%" for="node-config-input-accessAnonymous"><i class="fa fa-cog"></i> <span data-i18n="ezlo.label.accessAnonymous"></span></label>
                 <select id="node-config-input-accessAnonymous" style="width: auto">
                     <option value="" data-i18n="ezlo.options.anonUnchanged"></option>
                     <option value="false" data-i18n="ezlo.options.anonEnable"></option>
                     <option value="true" data-i18n="ezlo.options.anonDisable"></option>
                 </select>
             </div>
-            <div class="form-row" style="margin-bottom:0">
-                <input type="checkbox" id="node-config-input-debug" style="margin: 0 5px 0 104px; display: inline-block; width: auto;">
+            <div class="form-row">
+                <input type="checkbox" id="node-config-input-debug" style="margin-left: 33%; display: inline-block; width: auto;">
                 <label for="node-config-input-debug" style="width: auto"><span data-i18n="ezlo.label.debug"></span></label>
             </div>
         </div>
@@ -214,14 +214,13 @@ SOFTWARE.
 
     var loadItemSelectors = function( node ) {
         try {
-            console.log("ezlo item: loading hub data for",node.id,"hub",node.hub);
+            console.log( `ezlo item ${node.id}: loading hub data for ${node.hub}` );
             $.getJSON({
-                url: "devicelist/" + String( node.hub ),
+                url: `devicelist/${node.hub}`,
                 timeout: 30000
             }).done( data => {
-                console.log("request success");
                 let currItem = data.items[ node.itemId ];
-                console.log("current item is",currItem);
+                // console.log("current item is",currItem);
                 /* First, fill the device menu with current devices */
                 var $el = $( 'select#ezlo-device' ).empty()
                     .append( '<option value="">(choose device)</option>' );
@@ -284,16 +283,18 @@ SOFTWARE.
                     }
                 });
             }).fail( ( jqxhr, textStatus, error ) => {
-                console.error( "request failed:", jqxhr, textStatus, error );
+                console.error( `hub data request failed: ${jqxhr.status} ${jqxhr.responseText || jqxhr.statusText}` );
+                $( 'select#ezlo-device' ).empty();
+                $( 'select#ezlo-item' ).empty();
             });
         } catch ( err ) {
             $( 'select#ezlo-device' ).empty();
             $( 'select#ezlo-item' ).empty();
             console.error( err );
         }
-    }
+    };
 
-    RED.nodes.registerType('ezlo item',{
+    RED.nodes.registerType('ezlo item', {
         category: 'ezlo',
         defaults: {
             hub: { type:"ezlo-hub", required: true},
@@ -313,7 +314,9 @@ SOFTWARE.
         },
         oneditprepare: function() {
             const node = this;
-            $("#node-input-hub").on( "change", function(d) {
+            $("#node-input-hub").on( "change", function( ev ) {
+                const $m = $( ev.currentTarget );
+                node.hub = $m.val() || "";
                 loadItemSelectors( node );
             });
             loadItemSelectors( node );
@@ -324,12 +327,11 @@ SOFTWARE.
 
     var loadDeviceSelector = function( node ) {
         try {
-            console.log("ezlo device: loading device data for",node.id,"hub",node.hub);
+            console.log( `ezlo device ${node.id}: loading hub data for ${node.hub}` );
             $.getJSON({
                 url: "devicelist/" + String( node.hub ),
                 timeout: 30000
             }).done( data => {
-                console.log("ezlo device: request success");
                 let currDevice = data.devices[ node.deviceId ];
                 console.log("ezlo device: current device is", currDevice);
                 /* Fill the device menu with current devices */
@@ -362,12 +364,13 @@ SOFTWARE.
                 });
             }).fail( ( jqxhr, textStatus, error ) => {
                 console.error( "request failed:", jqxhr, textStatus, error );
+                $( 'select#ezlo-device' ).empty();
             });
         } catch ( err ) {
-            $( 'select#ezlo-device' ).empty();
             console.error( err );
+            $( 'select#ezlo-device' ).empty();
         }
-    }
+    };
 
     RED.nodes.registerType('ezlo device',{
         category: 'ezlo',
@@ -388,7 +391,9 @@ SOFTWARE.
         },
         oneditprepare: function() {
             const node = this;
-            $("#node-input-hub").on( "change", function(d) {
+            $("#node-input-hub").on( "change", function( ev ) {
+                const $m = $( ev.currentTarget );
+                node.hub = $m.val() || "";
                 loadDeviceSelector( node );
             });
             loadDeviceSelector( node );
@@ -418,8 +423,8 @@ SOFTWARE.
             const node = this;
             $("#node-input-hub").on( "change", function(d) {
             });
-            if ( "undefined" === typeof this.responseType ) {
-                this.responseType = "";
+            if ( "undefined" === typeof node.responseType ) {
+                node.responseType = "";
                 $("#node-input-responseType").val( "" );
             }
         },
@@ -441,13 +446,6 @@ SOFTWARE.
         },
         labelStyle: function() {
             return this.name?"node_label_italic":"";
-        },
-        oneditprepare: function() {
-            const node = this;
-            $("#node-input-hub").on( "change", function(d) {
-            });
-        },
-        oneditsave: function() {
         }
     });
 })();
