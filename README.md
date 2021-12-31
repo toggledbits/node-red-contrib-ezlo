@@ -1,4 +1,4 @@
-# Ezlo nodes for Node-Red
+# Ezlo nodes for *Node-RED*
 [![Platform](https://img.shields.io/badge/platform-Node--RED-red)](https://nodered.org)
 ![License](https://img.shields.io/github/license/toggledbits/node-red-contrib-ezlo)
 [![NPM](https://img.shields.io/npm/v/node-red-contrib-ezlo?logo=npm)](https://www.npmjs.org/package/node-red-contrib-ezlo)
@@ -12,7 +12,7 @@
 ![Build](https://img.shields.io/github/workflow/status/toggledbits/node-red-contrib-ezlo/Node.js%20CI?event=push)
 -->
 
-This package provides Node-Red nodes for controlling devices connected to Ezlo hubs via their API. It can connect to the hub locally, or through Ezlo's cloud relay (the latter is the only optional available for older generation Atom and PlugHub hubs).
+This package provides *Node-RED* nodes for controlling devices connected to Ezlo hubs via their API. It can connect to the hub locally, or through Ezlo's cloud relay (the latter is the only optional available for older generation Atom and PlugHub hubs).
 
 I try to be responsive to questions and [issues](https://github.com/toggledbits/node-red-contrib-ezlo/issues), so please feel free to reach out. If you find these nodes useful, please [make a donation](#donations-fuel-this-project} to support my efforts!
 
@@ -110,7 +110,7 @@ When configuring any of the above nodes, you will need to specify the hub. This 
 2. Via the local API WebSocket, with authentication: using a *local access token*, a connection to the hub's local API WebSocket may be possible. The access token is obtained from the Ezlo cloud services, so Internet/cloud access is still required, but the token is long-lived and reconnections without re-authentication are possible within the token's lifetime. The local API WebSocket is not available on older Atom and PlugHub models (only cloud relay is allowed/possible).
 3. Via the local API WebSocket, without authentication: to eliminate the Internet/cloud dependency, you can configure the hub for *offline anonymous access*, but this comes with a trade-off to the hub's security (and again, this is not available on some hub models). This is the best option for reliability of your home automation, but only you can judge if it's an acceptable risk.
 
-For cloud relay access, which is the simplest and quickest way to get started, you only need to configure the serial number and an Ezlo account username and password. It is recommended that you create an additional user account to keep *Node-Red*'s access separate from your master Ezlo account credentials. New users can be created using their mobile app. This is generally the least desirable way to connect to the hub, however, as it is heavily dependent on the uptime of your Internet access and the Ezlo cloud services, and adds latency to every data exchange/command. Unfortunately, for older Atom and PlugHub models, this is also the only option available (and for this reason, these models are a poor choice for any serious home automation, in the author's opinion).
+For cloud relay access, which is the simplest and quickest way to get started, you only need to configure the serial number and an Ezlo account username and password. It is recommended that you create an additional user account to keep *Node-RED*'s access separate from your master Ezlo account credentials. New users can be created using their mobile app. This is generally the least desirable way to connect to the hub, however, as it is heavily dependent on the uptime of your Internet access and the Ezlo cloud services, and adds latency to every data exchange/command. Unfortunately, for older Atom and PlugHub models, this is also the only option available (and for this reason, these models are a poor choice for any serious home automation, in the author's opinion).
 
 For authenticated local access, you need to provide the serial number, Ezlo account username and password, and the `Local IP Address` of the hub. Your hub *must* use a static IP address or DHCP reservation so that the address never changes. Although it is still necessary for the node to connect to the cloud to refresh the access token, these requests are fewer and farther between, and the local access to the API reduces latency of data and actions considerably.
 
@@ -118,9 +118,9 @@ For unauthenticated local access, you first need to be aware that you are removi
 
 ## Issues
 
-Please report issues or questions on the [Github repository for the project](https://github.com/toggledbits/node-red-contrib-ezlo/issues). Since this is my first effort for Node-Red, I'm interested in any feedback any of you may have, particular experienced NR node developers.
+Please report issues or questions on the [Github repository for the project](https://github.com/toggledbits/node-red-contrib-ezlo/issues). Since this is my first effort for *Node-RED*, I'm interested in any feedback any of you may have, particular experienced NR node developers.
 
-You can also find me in the [Node-Red forum](https://discourse.nodered.org/) as [@toggledbits](https://discourse.nodered.org/u/toggledbits/summary), and I'm happy to answer questions there, but if you're reporting a bug, please do so at Github issues (linked above) to help keep me organized.
+You can also find me in the [Node-RED forum](https://discourse.nodered.org/) as [@toggledbits](https://discourse.nodered.org/u/toggledbits/summary), and I'm happy to answer questions there, but if you're reporting a bug, please do so at Github issues (linked above) to help keep me organized.
 
 **Known Issue:** Ezlo hubs on recent firmware issue an error (bad parameters) when you attempt to change the house mode to the already active mode, rather than ignoring the call. This is a logged error only and produces no other output (i.e. nothing at the node's output), so it's benign. Just be aware of it if you see it in the logs.
 
@@ -140,7 +140,7 @@ Please see the [CHANGELOG](/CHANGELOG.md) file.
 
 ## Author
 
-My name is Patrick Rigney, and I've been an active developer in the IoT space for about 8 years. My background is in EECS. I'm a current independent developer of integrations and tools for Vera, Ezlo, Hubitat, Home Assistant, and now, *Node-Red*. One of my biggest independent projects is [Reactor](https://reactor.toggledbits.com), a code-less automation engine for people who find even *Node-Red* too daunting.
+My name is Patrick Rigney, and I've been an active developer in the IoT space for about 8 years. My background is in EECS. I'm a current independent developer of integrations and tools for Vera, Ezlo, Hubitat, Home Assistant, and now, *Node-RED*. One of my biggest independent projects is [Reactor](https://reactor.toggledbits.com), a code-less automation engine for people who find even *Node-RED* too daunting.
 
 ## License
 
