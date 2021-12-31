@@ -63,24 +63,24 @@ The output of the node can be in one of four forms (you choose one):
 * Current only, ID and name (object) &mdash; the output sends the current house mode ID and name in an object of the form: `{ "id": 1, "name": "Home" }`
 * Current and Pending (objects) &mdash; when the house mode change starts, an object with the current and pending modes is sent to the output:
 
-	{
-		"action": "changing",
-		"from": {
-			"id": 1, "name": "Home"
-		},
-		"to": {
-			"id": 2, "name": "Away"
-		}
-	}
+        {
+            "action": "changing",
+            "from": {
+                "id": 1, "name": "Home"
+            },
+            "to": {
+                "id": 2, "name": "Away"
+            }
+        }
 
   When a house mode change completes (or is cancelled), an object of this form is sent to the output:
 
-	{
-		"action": "current",
-		"current": {
-			"id": 1, "name": "Away"
-		}
-	}
+        {
+            "action": "current",
+            "current": {
+                "id": 1, "name": "Away"
+            }
+        }
 
 The input of the *ezlo house mode* node accepts either a numeric house mode ID or string mode name as its payload, and will initiate a change with the hub to the given mode. If the payload is an object of the form `{ "action": "cancel" }`, the node will attempt to cancel any pending house mode change. If there no payload (or an empty payload) presented on a message to the input, the node will respond by sending the current mode to the output (in the form configured).
 
@@ -88,15 +88,15 @@ The input of the *ezlo house mode* node accepts either a numeric house mode ID o
 
 The *ezlo hub* node provides basic up/down information about the hub by sending objects to the output containing a `status` key with value `online` or `offline`.
 
-	{ "status": "online" }
+        { "status": "online" }
 
 At the input, if a message has no payload, the current online/offline state will be reported at the output. If the message has a payload with the key `method` defined, the node will send the payload to the hub as an API request; the optional `params` key can be included to include any required parameters as defined by the Ezlo API. It is thus possible to run pretty much any API action. The result of the action will be presented at the output in the following form:
 
-	{
-		"request": { ...repeats the request input... }
-		"result": { ...contains the result from the hub... }
-		"error": { ...contains error info from the hub... }
-	}
+        {
+            "request": { ...repeats the request input... }
+            "result": { ...contains the result from the hub... }
+            "error": { ...contains error info from the hub... }
+        }
 
 The `result` key will contain an object that contains the body of the hub's response to the action, if it succeeded. If it failed, the `result` key will not be present, and the `error` key will be present with the `message`, `code` and `reason` given by the hub.
 
