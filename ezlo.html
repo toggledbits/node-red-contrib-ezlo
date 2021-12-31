@@ -319,6 +319,13 @@ SOFTWARE.
                 node.hub = $m.val() || "";
                 loadItemSelectors( node );
             });
+            $( "#node-input-itemId" ).on( "change", ev => {
+                const newval = $( ev.currentTarget ).val() || "";
+                if ( newval !== node.itemId ) {
+                    node.itemId = newval;
+                    loadItemSelectors( node );
+                }
+            });
             loadItemSelectors( node );
         },
         oneditsave: function() {
@@ -395,6 +402,13 @@ SOFTWARE.
                 const $m = $( ev.currentTarget );
                 node.hub = $m.val() || "";
                 loadDeviceSelector( node );
+            });
+            $( "#node-input-deviceId" ).on( "change", ev => {
+                const newval = $( ev.currentTarget ).val() || "";
+                if ( newval !== node.deviceId ) {
+                    node.deviceId = newval;
+                    loadDeviceSelector( node );
+                }
             });
             loadDeviceSelector( node );
         },
