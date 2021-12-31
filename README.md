@@ -38,7 +38,7 @@ The *ezlo item* node will send to its output every change to the item's value. Y
 
 Manipulating a device on Ezlo hubs is most often done by *setting* the value of an item. For example, if we want our dimmer device to go from 100% back to 25%, we would set the device's `dimmer` item value to 25. So the *ezlo item* node will accept a value at its input, and will attempt to set that value on the item. The value must be of the type required by the Ezlo API for the item type (the node will convert strings to numbers and strings to boolean if that's required).
 
-To set up an *ezlo item* node, you either need to know the item's ID, or pick it from the device and item selectors. The selectors will populate once the hub is selected. You may need to choose the hub first, then click "Done" to close the unfinished node, then re-open it, to get the lists to populate. I'm still trying to get that smoothed out, but there are some chicken-and-egg problems there and sometimes the API doesn't report accurately when a user has changed the hub field. This is particularly true for the first *ezlo item* node you add, so you may even need to *Deploy* the unfinished flow and then go back in to edit the item before the lists populate. I'll keep working on improving that.
+To set up an *ezlo item* node, you either need to know the item's ID, or pick it from the device and item selectors. The selectors will populate once the hub is selected. Choose the device, then the item, and the `Item ID` and `Description` fields will be populated automatically.
 
 If you send no payload or an empty payload to an *ezlo item* node, it will echo the current value of the item (in the form chosen) at its output.
 
@@ -50,7 +50,7 @@ The output of this node is the unfiltered, unmodified Ezlo device structure.
 
 The input of the node will accept a no-payload (or empty payload) message and will in response echo at the output the device information. Any other input to the node currently logs an error and produces nothing on the output.
 
-Like the *ezlo item* node, you need to provide the device ID, and the easiest way to get that is to use the drop-down list of devices to pick it. The list will populate once the hub has been selected, but you may need to "Done" the unfinished node and go back into it to get the list to populate, and for the very first node you create, you may even need to "Deploy" the unfinished node.
+Like the *ezlo item* node, you need to provide the device ID, and the easiest way to get that is to use the menu of devices to pick it. The list will populate once the hub has been selected. Selecting a device from the menu will populate the `Device ID` and `Description` fields.
 
 ### `ezlo house mode` node
 
@@ -122,11 +122,9 @@ Please report issues or questions on the [Github repository for the project](htt
 
 You can also find me in the [Node-Red forum](https://discourse.nodered.org/) as [@toggledbits](https://discourse.nodered.org/u/toggledbits/summary), and I'm happy to answer questions there, but if you're reporting a bug, please do so at Github issues (linked above) to help keep me organized.
 
-**Known Issue:** To reiterate what was stated above, the selection of items and devices isn't yet as smooth as I want it to be (and the way I want it to work may be beyond the limits of what the Node-Red API will allow). To get the device and item fields to populate, it may be necessary to choose the hub on the node first, then click "Done" to exit the edit of the unfinished node, then go back into the node, at which point the lists should populate. On the very first node added or when a new hub is added, it may even be necessary to "Deploy" before going back to edit to get the menus to fill.
+**Known Issue:** Ezlo hubs on recent firmware issue an error (bad parameters) when you attempt to change the house mode to the already active mode, rather than ignoring the call. This is a logged error only and produces no other output (i.e. nothing at the node's output), so it's benign. Just be aware of it if you see it in the logs.
 
-**Known Issue:** Ezlo hubs on recent firmware issue an error (bad parameters) when you attempt to change the house mode to the current mode (i.e. set it to what it already is). This is a logged error only and produces no other output (i.e. nothing at the node's output), so it's benign. Just be aware of it if you see it in the logs.
-
-**Known Issue:** Some versions of Ezlo firmware will refuse to open connections after a hub reboot for a couple of minutes. They do recover, but it's a firmware issue and there's nothing I can do about it.
+**Known Issue:** Some versions of Ezlo firmware will refuse to open connections after a hub reboot for a couple of minutes. It will eventually recover, but it's an Ezlo firmware issue and there's nothing I can do about it.
 
 ## Donations Fuel This Project!
 
