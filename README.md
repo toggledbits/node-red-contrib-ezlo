@@ -28,29 +28,29 @@ Installing or updating these nodes should be as simple as:
 
 ### `ezlo item` node
 
-The *ezlo item* node is probably the node you will use the most. On Ezlo hubs, *devices* have *items*, and items are the containers for state on the device. For example, when a switch device is turned on, its `switch` item's value will go from *false* to *true*. A dimmer changes from 25% to 100% will have a `dimmer` item the value of which will change from 25 to 100.
+The *ezlo item* node is probably the node you will use the most. On Ezlo hubs, *devices* have *items*, and items are the containers for state on the device. For example, when a switch device is turned on, its `switch` item's value will go from *false* to *true*. A dimmer changing from 25% to 100% will have its `dimmer` item's value change from 25 to 100.
 
-The *ezlo item* node will send to its output every change to the item's value. You can choose one of three different output formats for the payload:
+The *ezlo item* node will send to its output every change to the item's value reported by the hub. You can choose one of three different output formats for the payload:
 
 * Simple &mdash; (default) the item's value is sent as-is, as the entire payload. A dimmer value, for example, will have a payload that is just a number from 0 to 100.
 * Abbreviated &mdash; the value is sent as a small object with keys `id`, `name`, and `value`; the `id` and `name` are the unique identifier and item name, respectively.
 * Full &mdash; the entire Ezlo item structure, as provided by the Ezlo API, is sent unmodified/unfiltered.
 
-Manipulating a device on Ezlo hubs is most often done by *setting* the value of an item. For example, if we want our dimmer device to go from 100% back to 25%, we would set the device's `dimmer` item value to 25. So the *ezlo item* node will accept a value at its input, and will attempt to set that value on the item. The value must be of the type required by the Ezlo API for the item type (the node will convert strings to numbers and strings to boolean if that's required).
+Controlling a device on Ezlo hubs is most often done by setting the value of an item. For example, if we want our dimmer device to go from 100% back to 25%, we would set the device's `dimmer` item value to 25. So the *ezlo item* node will accept a value at its input, and will attempt to set that value on the item. The value must be of the type required by the Ezlo API for the item type (the node will convert strings to numbers and strings to boolean if that's required).
 
-To set up an *ezlo item* node, you either need to know the item's ID, or pick it from the device and item selectors. The selectors will populate once the hub is selected. Choose the device, then the item, and the `Item ID` and `Description` fields will be populated automatically.
+To set up an *ezlo item* node, you either need to know the item's ID, or pick it from the device and item menus. The menus will populate once the hub is selected. Choose the device, then the item, and the `Item ID` and `Description` fields will be populated automatically.
 
 If you send no payload or an empty payload to an *ezlo item* node, it will echo the current value of the item (in the form chosen) at its output.
 
 ### `ezlo device` node
 
-The *ezlo device* node maps to an Ezlo device and provides the non-state information about the device (e.g. its name, if it's battery powered, if it's reachable, etc.).
+The *ezlo device* node maps to an Ezlo device and provides the non-state information about the device (e.g. its name, whether battery-powered, it's reachability, etc.).
 
 The output of this node is the unfiltered, unmodified Ezlo device structure.
 
-The input of the node will accept a no-payload (or empty payload) message and will in response echo at the output the device information. Any other input to the node currently logs an error and produces nothing on the output.
+The input of the node will accept a no-payload (or empty payload) message and in response will send the device information to the output. Any other payload currently logs an error and produces nothing on the output.
 
-Like the *ezlo item* node, you need to provide the device ID, and the easiest way to get that is to use the menu of devices to pick it. The list will populate once the hub has been selected. Selecting a device from the menu will populate the `Device ID` and `Description` fields.
+Like the *ezlo item* node, you need to provide the device ID, and the easiest way to get that is to use the menu of devices to pick it. The menu will populate once the hub has been selected. Selecting a device from the menu will populate the `Device ID` and `Description` fields.
 
 ### `ezlo house mode` node
 
@@ -82,7 +82,7 @@ The output of the node can be in one of four forms (you choose one):
             }
         }
 
-The input of the *ezlo house mode* node accepts either a numeric house mode ID or string mode name as its payload, and will initiate a change with the hub to the given mode. If an object of the form `{ "action": "cancel" }` is given as the input payload, the node will attempt to cancel any pending house mode change. If there no payload (or an empty payload) presented on a message to the input, the node will respond by sending the current mode to the output (in the form configured).
+The input of the *ezlo house mode* node accepts either a numeric house mode ID or string mode name as its payload, and will initiate a change with the hub to the given mode. If the payload is an object of the form `{ "action": "cancel" }`, the node will attempt to cancel any pending house mode change. If there no payload (or an empty payload) presented on a message to the input, the node will respond by sending the current mode to the output (in the form configured).
 
 ### `ezlo hub` node
 
