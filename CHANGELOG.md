@@ -1,5 +1,9 @@
 # Change Log for node-red-contrib-ezlo
 
+## 0.1.3 (21364)
+
+* Clean up field interactions (coordination with hub selection, device and item lists).
+
 ## 0.1.2 (21364)
 
 * Mostly documentation updates and details.
