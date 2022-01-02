@@ -223,7 +223,7 @@ SOFTWARE.
                 // console.log("current item is",currItem);
                 /* First, fill the device menu with current devices */
                 var $el = $( 'select#ezlo-device' ).empty()
-                    .append( '<option value="">(choose device)</option>' );
+                    .append( `<option value="">${node._('ezlo.menu.choose-device')}</option>` );
                 for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
                     $( '<option></option>' ).val( deviceId )
                         .text( d.name || deviceId )
@@ -245,7 +245,8 @@ SOFTWARE.
                     });
                 var fillDeviceItems = function( deviceId ) {
                     $il.empty();
-                    $( '<option value="">(choose item)</option>' )
+                    $( '<option value=""></option>' )
+                        .text( node._('ezlo.menu.choose-item') )
                         .prependTo( $il );
                     for ( var [ itemId, item ] of Object.entries( data.items || {} ) ) {
                         if ( item.deviceId === deviceId ) {
@@ -262,11 +263,12 @@ SOFTWARE.
                     $il.prop( 'disabled', false );
                 } else if ( "" !== node.itemId ) {
                     /* Item no longer exists */
-                    $( '<option value="unknown">**unknown device**</option>' )
+                    $( '<option value="unknown"></option>' )
+                        .text( node._('ezlo.menu.device-unknown') )
                         .appendTo( $el );
                     $el.val( "unknown" );
                     $( '<option></option>' ).val( node.itemId )
-                        .text( node.itemId + " (unknown item)" );
+                        .text( node.itemId + " " + node._('ezlo.menu.item-unknown') );
                     $il.val( node.itemId ).prop( 'disabled', false );
                 } else {
                     $el.val( "" );
@@ -343,7 +345,7 @@ SOFTWARE.
                 console.log("ezlo device: current device is", currDevice);
                 /* Fill the device menu with current devices */
                 var $el = $( 'select#ezlo-device' ).empty()
-                    .append( '<option value="">(choose device)</option>' );
+                    .append( `<option value="">${node._('ezlo.menu.choose-device')}</option>` );
                 for ( var [ deviceId, d ] of Object.entries( data.devices || {} ) ) {
                     $( '<option></option>' ).val( deviceId )
                         .text( d.name || deviceId )
@@ -354,7 +356,7 @@ SOFTWARE.
                 } else if ( node.deviceId ) {
                     $( '<option></option>' )
                         .val( node.deviceId )
-                        .text( node.deviceId + " (unknown device)" )
+                        .text( node.deviceId + " " + node._('ezlo.menu.device-known') )
                         .appendTo( $el );
                     $el.val( node.deviceId );
                 } else {

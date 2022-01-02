@@ -2,6 +2,7 @@
 
 ## 1.0.0 (22002)
 
+* Localize new strings introduced for device and item menus.
 * Clean up code, mostly, make it a bit more presentable. Needs more cowbell.
 * Documentation cleanup and enhancement. Clarifications on some values.
 

@@ -44,6 +44,12 @@
             "anonUnchanged": "Leave current setting",
             "anonEnable": "Disable anonymous access",
             "anonDisable": "Enable anonymous access"
+        },
+        "menu": {
+            "choose-device": "(choose device)",
+            "choose-item": "(choose item)",
+            "device-unknown": "(unknown device)",
+            "item-unknown": "(unknown item)"
         }
     }
 }
