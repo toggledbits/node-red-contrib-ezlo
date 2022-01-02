@@ -27,7 +27,7 @@ SOFTWARE.
 module.exports = function (RED) {
     "use strict";
 
-    const EzloClient = require( "./lib/ezlo" );
+    const EzloClient = require( "./lib/ezloclient" );
 
     function isEmpty( s ) {
         return "undefined" === typeof s || null === s || "" === s;
