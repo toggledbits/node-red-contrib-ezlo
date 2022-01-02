@@ -1,7 +1,6 @@
 {
-    "private": false,
     "name": "node-red-contrib-ezlo",
-    "version": "0.1.3",
+    "version": "1.0.0",
     "description": "Node-Red nodes for Ezlo hubs",
     "node-red": {
         "nodes": {

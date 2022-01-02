@@ -1,5 +1,11 @@
 # Change Log for node-red-contrib-ezlo
 
+## 1.0.0 (22002)
+
+* Localize new strings introduced for device and item menus.
+* Clean up code, mostly, make it a bit more presentable. Needs more cowbell.
+* Documentation cleanup and enhancement. Clarifications on some values.
+
 ## 0.1.3 (21364)
 
 * Clean up field interactions (coordination with hub selection, device and item lists).
