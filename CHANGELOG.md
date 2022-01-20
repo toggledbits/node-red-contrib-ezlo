@@ -1,5 +1,10 @@
 # Change Log for node-red-contrib-ezlo
 
+## 1.0.1 (22020)
+
+* Improve heartbeat handling in ezloclient.js.
+* Explicit float handling with range for setItemValue (ezloclient.js).
+
 ## 1.0.0 (22002)
 
 * Localize new strings introduced for device and item menus.
