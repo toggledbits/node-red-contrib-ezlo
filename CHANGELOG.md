@@ -1,5 +1,9 @@
 # Change Log for node-red-contrib-ezlo
 
+## 1.0.2 (22021)
+
+* Fix boolean string test.
+
 ## 1.0.1 (22020)
 
 * Improve heartbeat handling in ezloclient.js.
