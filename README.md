@@ -12,9 +12,9 @@
 ![Build](https://img.shields.io/github/workflow/status/toggledbits/node-red-contrib-ezlo/Node.js%20CI?event=push)
 -->
 
-This package provides *Node-RED* nodes for controlling devices connected to Ezlo hubs via their API. It can connect to the hub locally, or through Ezlo's cloud relay (the latter is the only optional available for older generation Atom and PlugHub hubs).
+This package provides *Node-RED* nodes for controlling devices connected to Ezlo hubs via their API. It can connect to the hub locally, or through Ezlo's cloud relay (the latter is the only option available for older generation Atom and PlugHub hubs).
 
-I try to be responsive to questions and [issues](https://github.com/toggledbits/node-red-contrib-ezlo/issues), so please feel free to reach out. If you find these nodes useful, please [make a donation](#donations-fuel-this-project} to support my efforts!
+I try to be responsive to questions and [issues](https://github.com/toggledbits/node-red-contrib-ezlo/issues), so please feel free to reach out. If you find these nodes useful, please [make a donation](#donations-fuel-this-project) to support my efforts!
 
 ![image](https://user-images.githubusercontent.com/19241798/147771403-578cabd4-9628-41e3-a13f-ebec834be3e4.png)
 
@@ -118,7 +118,7 @@ For unauthenticated local access, you first need to be aware that you are removi
 
 ## Issues
 
-Please report issues or questions on the [Github repository for the project](https://github.com/toggledbits/node-red-contrib-ezlo/issues). Since this is my first effort for *Node-RED*, I'm interested in any feedback any of you may have, particular experienced NR node developers.
+Please report issues or questions on the [Github repository for the project](https://github.com/toggledbits/node-red-contrib-ezlo/issues). Since this is my first effort for *Node-RED*, I'm interested in all feedback (including that of NR power-users and experienced NR node developers).
 
 You can also find me in the [Node-RED forum](https://discourse.nodered.org/) as [@toggledbits](https://discourse.nodered.org/u/toggledbits/summary), and I'm happy to answer questions there, but if you're reporting a bug, please do so at Github issues (linked above) to help keep me organized.
 
